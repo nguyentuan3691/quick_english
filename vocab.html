@@ -437,6 +437,39 @@
     .voice-log .log-err { color: #fc8181; }
     .voice-log .log-ok { color: #68d391; }
 
+    /* ===== MIC LEVEL METER ===== */
+    .mic-meter-wrap {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      padding: 4px 8px;
+      background: #1a202c;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      color: #a0aec0;
+      font-family: 'Courier New', monospace;
+    }
+    .mic-meter-wrap.active { display: flex; }
+    .mic-meter-bar {
+      flex: 1;
+      height: 10px;
+      background: #2d3748;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .mic-meter-fill {
+      height: 100%;
+      width: 0%;
+      background: #68d391;
+      border-radius: 4px;
+      transition: width 0.05s;
+    }
+    .mic-meter-fill.low { background: #fc8181; }
+    .mic-meter-fill.mid { background: #ed8936; }
+    .mic-meter-fill.high { background: #68d391; }
+    .mic-meter-val { min-width: 32px; text-align: right; }
+
     /* ===== TOOLTIP ===== */
     #tooltip {
       position: fixed;
@@ -465,7 +498,7 @@
 <body>
 
 <div id="tooltip"></div>
-<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v1.7</span></h1>
+<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v1.8</span></h1>
 
 <div class="tabs-wrapper">
   <div class="tabs-nav">
@@ -494,6 +527,12 @@
     <div style="display:flex;gap:6px;justify-content:center;margin-top:8px">
       <button class="voice-log-toggle" onclick="toggleVoiceLog()">🔍 Voice Log</button>
       <button class="voice-log-toggle" onclick="clearVoiceLog()">🗑 Xóa log</button>
+      <button class="voice-log-toggle" onclick="testMicLevel()">🎚 Test Mic</button>
+    </div>
+    <div class="mic-meter-wrap" id="micMeter">
+      <span>MIC</span>
+      <div class="mic-meter-bar"><div class="mic-meter-fill" id="micMeterFill"></div></div>
+      <span class="mic-meter-val" id="micMeterVal">0%</span>
     </div>
     <div class="voice-log" id="voiceLog"></div>
   </div>
@@ -774,6 +813,77 @@
     document.getElementById('voiceLog').innerHTML = '';
   }
 
+  // ===== CACHED MIC STREAM (tránh hỏi Allow nhiều lần trên file://) =====
+  let _cachedMicStream = null;
+  const _audioConstraints = {
+    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+  };
+  function getCachedMicStream() {
+    // Kiểm tra stream cũ còn sống không
+    if (_cachedMicStream) {
+      const tracks = _cachedMicStream.getAudioTracks();
+      if (tracks.length > 0 && tracks[0].readyState === 'live') {
+        return Promise.resolve(_cachedMicStream);
+      }
+      _cachedMicStream = null;
+    }
+    return navigator.mediaDevices.getUserMedia(_audioConstraints).then(stream => {
+      _cachedMicStream = stream;
+      return stream;
+    });
+  }
+
+  // ===== TEST MIC LEVEL =====
+  let _testMicCtx = null, _testMicAnimId = null, _testMicActive = false;
+  function testMicLevel() {
+    // Nếu đang test → dừng
+    if (_testMicActive) {
+      cancelAnimationFrame(_testMicAnimId);
+      if (_testMicCtx) _testMicCtx.close().catch(() => {});
+      _testMicCtx = null;
+      _testMicActive = false;
+      document.getElementById('micMeter').classList.remove('active');
+      vlog(`🎚 Test mic dừng`);
+      return;
+    }
+    vlog(`🎚 Bắt đầu test mic...`);
+    getCachedMicStream().then(stream => {
+      _testMicActive = true;
+      const tracks = stream.getAudioTracks();
+      vlog(`🎚 Đang dùng mic: "${tracks[0]?.label || 'unknown'}"`);
+      const settings = tracks[0]?.getSettings?.() || {};
+      vlog(`🎚 AGC=${settings.autoGainControl}, noise=${settings.noiseSuppression}, echo=${settings.echoCancellation}`);
+      _testMicCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const source = _testMicCtx.createMediaStreamSource(stream);
+      const analyser = _testMicCtx.createAnalyser();
+      analyser.fftSize = 512;
+      source.connect(analyser);
+      const meterWrap = document.getElementById('micMeter');
+      const meterFill = document.getElementById('micMeterFill');
+      const meterVal = document.getElementById('micMeterVal');
+      meterWrap.classList.add('active');
+      const dataArr = new Uint8Array(analyser.frequencyBinCount);
+      function update() {
+        analyser.getByteTimeDomainData(dataArr);
+        let sum = 0;
+        for (let i = 0; i < dataArr.length; i++) {
+          const v = (dataArr[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / dataArr.length);
+        const pct = Math.min(100, Math.round(rms * 300));
+        meterFill.style.width = pct + '%';
+        meterFill.className = 'mic-meter-fill ' + (pct < 5 ? 'low' : pct < 20 ? 'mid' : 'high');
+        meterVal.textContent = pct + '%';
+        _testMicAnimId = requestAnimationFrame(update);
+      }
+      update();
+      vlog(`🎚 Hãy nói gì đó để xem thanh level — nhấn Test Mic lần nữa để dừng`);
+    }).catch(err => {
+      vlog(`🎚 Mic error: ${err.message}`, 'err');
+    });
+  }
+
   // ===== SPEECH RECOGNITION =====
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let _activeRec = null;
@@ -811,13 +921,15 @@
     const btn = document.getElementById('mb-' + word);
     const result = document.getElementById('mr-' + word);
 
-    // Kiểm tra mic permission trước
+    // Mở mic — dùng cached stream (tránh hỏi Allow lại)
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        // Mic OK — dừng stream ngay (chỉ test)
-        stream.getTracks().forEach(t => t.stop());
-        vlog(`🎙 Mic permission OK, tracks: ${stream.getAudioTracks().length}`, 'ok');
-        doStartRec(word, btn, result);
+      getCachedMicStream().then(stream => {
+        const tracks = stream.getAudioTracks();
+        const settings = tracks[0]?.getSettings?.() || {};
+        vlog(`🎙 Mic OK: "${tracks[0]?.label || 'unknown'}"`, 'ok');
+        vlog(`🎙 Settings: AGC=${settings.autoGainControl}, noise=${settings.noiseSuppression}, echo=${settings.echoCancellation}, sampleRate=${settings.sampleRate}`);
+        // Giữ stream để monitor level trong lúc recognition
+        doStartRec(word, btn, result, stream);
       }).catch(err => {
         vlog(`🎙 Mic permission DENIED: ${err.name} — ${err.message}`, 'err');
         result.className = 'mic-result wrong';
@@ -825,15 +937,60 @@
       });
     } else {
       vlog(`🎙 mediaDevices không có — skip mic check`);
-      doStartRec(word, btn, result);
+      doStartRec(word, btn, result, null);
     }
   }
 
-  function doStartRec(word, btn, result) {
+  function doStartRec(word, btn, result, micStream) {
     const rec = new SpeechRecognition();
     rec.lang = 'en-US';
-    rec.interimResults = false;
+    rec.interimResults = true;
     rec.maxAlternatives = 5;
+
+    // Mic level monitor — giống cách Google Translate kiểm tra mic
+    let _micCtx = null, _micAnalyser = null, _micAnimId = null;
+    if (micStream) {
+      try {
+        _micCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = _micCtx.createMediaStreamSource(micStream);
+        _micAnalyser = _micCtx.createAnalyser();
+        _micAnalyser.fftSize = 512;
+        source.connect(_micAnalyser);
+        // KHÔNG connect đến destination (không phát lại qua loa)
+        const meterWrap = document.getElementById('micMeter');
+        const meterFill = document.getElementById('micMeterFill');
+        const meterVal = document.getElementById('micMeterVal');
+        meterWrap.classList.add('active');
+        let _peakLevel = 0;
+        const dataArr = new Uint8Array(_micAnalyser.frequencyBinCount);
+        function updateMeter() {
+          _micAnalyser.getByteTimeDomainData(dataArr);
+          let sum = 0;
+          for (let i = 0; i < dataArr.length; i++) {
+            const v = (dataArr[i] - 128) / 128;
+            sum += v * v;
+          }
+          const rms = Math.sqrt(sum / dataArr.length);
+          const pct = Math.min(100, Math.round(rms * 300));
+          if (pct > _peakLevel) _peakLevel = pct;
+          meterFill.style.width = pct + '%';
+          meterFill.className = 'mic-meter-fill ' + (pct < 5 ? 'low' : pct < 20 ? 'mid' : 'high');
+          meterVal.textContent = pct + '%';
+          _micAnimId = requestAnimationFrame(updateMeter);
+        }
+        updateMeter();
+        // Log khi dừng
+        rec.addEventListener('end', () => {
+          cancelAnimationFrame(_micAnimId);
+          vlog(`🎚 Mic peak level: ${_peakLevel}% ${_peakLevel < 5 ? '⚠️ RẤT NHỎ — mic có thể bị mute hoặc sai thiết bị!' : _peakLevel < 15 ? '⚠️ Nhỏ — thử nói to hơn hoặc lại gần mic' : '✓ OK'}`, _peakLevel < 5 ? 'err' : _peakLevel < 15 ? 'err' : 'ok');
+          meterWrap.classList.remove('active');
+          // KHÔNG stop stream tracks — giữ lại để dùng lần sau (tránh hỏi Allow lại)
+          _micCtx.close().catch(() => {});
+        });
+      } catch (e) {
+        vlog(`🎚 Mic meter error: ${e.message}`, 'err');
+      }
+    }
 
     _activeRec = rec;
     _activeRecWord = word;
@@ -880,8 +1037,9 @@
         return;
       }
       _gotResult = true;
+      const clean = s => s.trim().toLowerCase().replace(/[.,!?;:'"()]/g, '').trim();
       const alts = Array.from(res0).map(r => ({ text: r.transcript.trim().toLowerCase(), conf: r.confidence }));
-      const matched = alts.some(a => a.text === word.toLowerCase());
+      const matched = alts.some(a => clean(a.text) === clean(word));
       result.className = 'mic-result ' + (matched ? 'correct' : 'wrong');
       result.textContent = matched ? `✓ Chính xác! Google nhận ra: "${alts[0].text}"` : `✗ Chưa đúng — Google nghe: "${alts[0].text}"`;
       const altStr = alts.map(a => `"${a.text}" (${(a.conf*100).toFixed(1)}%)`).join(', ');
