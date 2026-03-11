@@ -465,7 +465,7 @@
 <body>
 
 <div id="tooltip"></div>
-<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v1.5</span></h1>
+<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v1.6</span></h1>
 
 <div class="tabs-wrapper">
   <div class="tabs-nav">
@@ -814,40 +814,75 @@
     _activeRec = rec;
     _activeRecWord = word;
 
+    // Diagnostic flags
+    let _startTime = Date.now();
+    let _audioStartTime = 0;
+    let _gotSound = false;
+    let _gotSpeech = false;
+    let _gotResult = false;
+    let _gotError = false;
+    let _interimCount = 0;
+
     btn.classList.add('listening');
     btn.textContent = '⏹';
     result.className = 'mic-result info';
     result.textContent = '🎙 Hãy nói "' + word + '" — tự dừng khi bạn ngừng nói';
-    vlog(`▶ Bắt đầu nghe "${word}" (lang=${rec.lang}, maxAlt=${rec.maxAlternatives})`);
+    vlog(`▶ Bắt đầu nghe "${word}" (lang=${rec.lang}, maxAlt=${rec.maxAlternatives}, interim=${rec.interimResults})`);
 
-    rec.onaudiostart = () => vlog(`🎙 audiostart — mic đã mở`);
-    rec.onsoundstart = () => vlog(`🎙 soundstart — phát hiện âm thanh`);
-    rec.onspeechstart = () => vlog(`🎙 speechstart — phát hiện giọng nói`);
-    rec.onspeechend = () => vlog(`🎙 speechend — ngừng nói`);
-    rec.onsoundend = () => vlog(`🎙 soundend — hết âm thanh`);
-    rec.onaudioend = () => vlog(`🎙 audioend — mic đã đóng`);
+    rec.onaudiostart = () => {
+      _audioStartTime = Date.now();
+      vlog(`🎙 audiostart — mic đã mở (+${_audioStartTime - _startTime}ms)`);
+    };
+    rec.onsoundstart = () => { _gotSound = true; vlog(`🎙 soundstart — phát hiện âm thanh (+${Date.now() - _startTime}ms)`); };
+    rec.onspeechstart = () => { _gotSpeech = true; vlog(`🎙 speechstart — phát hiện giọng nói (+${Date.now() - _startTime}ms)`); };
+    rec.onspeechend = () => vlog(`🎙 speechend — ngừng nói (+${Date.now() - _startTime}ms)`);
+    rec.onsoundend = () => vlog(`🎙 soundend — hết âm thanh (+${Date.now() - _startTime}ms)`);
+    rec.onaudioend = () => {
+      const micDuration = _audioStartTime ? Date.now() - _audioStartTime : 0;
+      vlog(`🎙 audioend — mic đã đóng (mic mở ${micDuration}ms, +${Date.now() - _startTime}ms)`);
+    };
     rec.onnomatch = () => vlog(`🎙 nomatch — không khớp kết quả nào`, 'err');
 
     rec.onresult = (e) => {
       const res0 = e.results[0];
       const isFinal = res0.isFinal;
+      if (!isFinal) {
+        _interimCount++;
+        const interim = res0[0].transcript;
+        vlog(`📝 interim #${_interimCount}: "${interim}" (+${Date.now() - _startTime}ms)`);
+        return;
+      }
+      _gotResult = true;
       const alts = Array.from(res0).map(r => ({ text: r.transcript.trim().toLowerCase(), conf: r.confidence }));
       const matched = alts.some(a => a.text === word.toLowerCase());
       result.className = 'mic-result ' + (matched ? 'correct' : 'wrong');
       result.textContent = matched ? `✓ Chính xác! Google nhận ra: "${alts[0].text}"` : `✗ Chưa đúng — Google nghe: "${alts[0].text}"`;
       const altStr = alts.map(a => `"${a.text}" (${(a.conf*100).toFixed(1)}%)`).join(', ');
-      vlog(`📝 result (final=${isFinal}): [${altStr}] → ${matched ? 'ĐÚNG ✓' : 'SAI ✗'}`, matched ? 'ok' : 'err');
+      vlog(`📝 FINAL result (+${Date.now() - _startTime}ms): [${altStr}] → ${matched ? 'ĐÚNG ✓' : 'SAI ✗'}`, matched ? 'ok' : 'err');
     };
 
     rec.onerror = (e) => {
-      vlog(`❌ Lỗi: ${e.error} | message: ${e.message || '(none)'}`, 'err');
+      _gotError = true;
+      vlog(`❌ Lỗi: ${e.error} | message: ${e.message || '(none)'} (+${Date.now() - _startTime}ms)`, 'err');
       if (e.error === 'aborted') return;
       result.className = 'mic-result wrong';
       result.textContent = e.error === 'no-speech' ? '🔇 Không nghe thấy gì — hãy thử lại' : 'Lỗi: ' + e.error;
     };
 
     rec.onend = () => {
-      vlog(`⏹ Kết thúc nghe "${word}"`);
+      const totalMs = Date.now() - _startTime;
+      const micMs = _audioStartTime ? Date.now() - _audioStartTime : 0;
+      vlog(`⏹ Kết thúc nghe "${word}" (tổng ${totalMs}ms, mic ${micMs}ms)`);
+      // Diagnostic summary
+      if (!_gotResult && !_gotError) {
+        vlog(`⚠️ CẢNH BÁO: Kết thúc KHÔNG có result & KHÔNG có error!`, 'err');
+        vlog(`   → sound=${_gotSound}, speech=${_gotSpeech}, interim=${_interimCount}`, 'err');
+        if (!_gotSound) vlog(`   → Mic mở nhưng KHÔNG phát hiện âm thanh — kiểm tra mic permission hoặc mic bị mute`, 'err');
+        else if (!_gotSpeech) vlog(`   → Có âm thanh nhưng KHÔNG nhận dạng giọng nói — nói to/rõ hơn`, 'err');
+        else vlog(`   → Có giọng nói nhưng Google không trả result — có thể mạng chậm/timeout`, 'err');
+      } else if (!_gotResult && _gotError) {
+        vlog(`   → Kết thúc với lỗi, không có result`);
+      }
       btn.classList.remove('listening');
       btn.textContent = '🎤';
       if (_activeRec === rec) {
@@ -858,7 +893,7 @@
 
     try {
       rec.start();
-      vlog(`🎙 rec.start() called OK`);
+      vlog(`🎙 rec.start() called OK (+${Date.now() - _startTime}ms)`);
     } catch(err) {
       vlog(`🎙 rec.start() exception: ${err.message}`, 'err');
     }
