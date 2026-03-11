@@ -285,6 +285,18 @@
 
     .btn-speak-all:hover { background: #805ad5; }
 
+    .btn-quiz {
+      padding: 8px 14px;
+      background: #ed8936;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      min-height: 38px;
+    }
+    .btn-quiz:hover { background: #dd6b20; }
+
     .btn-clear-all {
       padding: 8px 12px;
       background: #e2e8f0;
@@ -470,6 +482,207 @@
     .mic-meter-fill.high { background: #68d391; }
     .mic-meter-val { min-width: 32px; text-align: right; }
 
+    /* ===== FLASHCARD ===== */
+    .fc-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .fc-overlay.open { display: flex; }
+    .fc-box {
+      background: white;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .fc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #4299e1;
+      color: white;
+    }
+    .fc-header-title { font-weight: 700; font-size: 1rem; }
+    .fc-header-info { font-size: 0.8rem; opacity: 0.9; }
+    .fc-close {
+      background: none; border: none; color: white;
+      font-size: 1.3rem; cursor: pointer; padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .fc-close:hover { background: rgba(255,255,255,0.2); }
+    .fc-mode-bar {
+      display: flex;
+      gap: 4px;
+      padding: 10px 16px;
+      background: #ebf8ff;
+    }
+    .fc-mode-btn {
+      flex: 1;
+      padding: 8px;
+      border: 2px solid #bee3f8;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: #4a5568;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .fc-mode-btn.active {
+      border-color: #4299e1;
+      background: #4299e1;
+      color: white;
+      font-weight: 600;
+    }
+    .fc-mode-btn:hover:not(.active) { border-color: #90cdf4; }
+    .fc-card {
+      padding: 24px 16px;
+      text-align: center;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+    }
+    .fc-prompt {
+      font-size: 0.8rem;
+      color: #a0aec0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .fc-question {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #2d3748;
+      line-height: 1.4;
+    }
+    .fc-question.vi { font-style: italic; color: #718096; font-size: 1.3rem; }
+    .fc-phonetic { font-size: 0.9rem; color: #4299e1; }
+    .fc-answer-area {
+      padding: 0 16px 16px;
+      display: flex;
+      gap: 8px;
+    }
+    .fc-input {
+      flex: 1;
+      padding: 12px 14px;
+      font-size: 1rem;
+      border: 2px solid #cbd5e0;
+      border-radius: 10px;
+      outline: none;
+      text-align: center;
+    }
+    .fc-input:focus { border-color: #4299e1; }
+    .fc-input.correct { border-color: #48bb78; background: #f0fff4; }
+    .fc-input.wrong { border-color: #fc8181; background: #fff5f5; }
+    .fc-mic-btn {
+      padding: 12px 14px;
+      background: #ed8936;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      min-width: 44px;
+    }
+    .fc-mic-btn:hover { background: #dd6b20; }
+    .fc-mic-btn.listening { background: #e53e3e; animation: pulse 1s infinite; }
+    .fc-check-btn {
+      padding: 12px 18px;
+      background: #4299e1;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .fc-check-btn:hover { background: #3182ce; }
+    .fc-reveal {
+      padding: 12px 16px;
+      text-align: center;
+      background: #f7fafc;
+      border-top: 1px solid #e2e8f0;
+      display: none;
+    }
+    .fc-reveal.show { display: block; }
+    .fc-reveal-word {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #2d3748;
+    }
+    .fc-reveal-meaning {
+      font-size: 0.95rem;
+      color: #718096;
+      font-style: italic;
+      margin-top: 4px;
+    }
+    .fc-reveal-phonetic {
+      font-size: 0.85rem;
+      color: #4299e1;
+      margin-top: 2px;
+    }
+    .fc-actions {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #f7fafc;
+      border-top: 1px solid #e2e8f0;
+    }
+    .fc-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      min-height: 42px;
+    }
+    .fc-btn-audio { background: #48bb78; color: white; }
+    .fc-btn-audio:hover { background: #38a169; }
+    .fc-btn-next { background: #4299e1; color: white; }
+    .fc-btn-next:hover { background: #3182ce; }
+    .fc-score {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      color: #718096;
+      border-top: 1px solid #e2e8f0;
+    }
+    .fc-score-ok { color: #276749; font-weight: 600; }
+    .fc-score-fail { color: #9b2c2c; font-weight: 600; }
+    .fc-done {
+      padding: 32px 16px;
+      text-align: center;
+    }
+    .fc-done h2 { font-size: 1.3rem; color: #2d3748; margin-bottom: 8px; }
+    .fc-done p { color: #718096; margin-bottom: 16px; }
+    .fc-done-btn {
+      padding: 10px 24px;
+      background: #4299e1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 4px;
+    }
+    .fc-done-btn:hover { background: #3182ce; }
+    .fc-done-btn.secondary { background: #e2e8f0; color: #4a5568; }
+    .fc-done-btn.secondary:hover { background: #cbd5e0; }
+
     /* ===== TOOLTIP ===== */
     #tooltip {
       position: fixed;
@@ -498,7 +711,7 @@
 <body>
 
 <div id="tooltip"></div>
-<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v1.9</span></h1>
+<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v1.8</span></h1>
 
 <div class="tabs-wrapper">
   <div class="tabs-nav">
@@ -518,6 +731,7 @@
     <div class="toolbar">
       <span class="count-label" id="countLabel">0 từ</span>
       <div class="toolbar-right">
+        <button class="btn-quiz" onclick="startQuiz()" data-tip="Luyện tập flashcard từ vựng">🎴 Luyện tập</button>
         <button class="btn-speak-all" onclick="speakAll()" data-tip="Đọc lần lượt tất cả từ trong bài">▶ Đọc tất cả</button>
         <button class="btn-clear-all" onclick="clearAll()" data-tip="Xóa toàn bộ từ trong bài này">Xóa tất cả</button>
       </div>
@@ -535,6 +749,50 @@
       <span class="mic-meter-val" id="micMeterVal">0%</span>
     </div>
     <div class="voice-log" id="voiceLog"></div>
+  </div>
+</div>
+
+<div class="fc-overlay" id="fcOverlay">
+  <div class="fc-box">
+    <div class="fc-header">
+      <span class="fc-header-title">🎴 Luyện tập</span>
+      <span class="fc-header-info" id="fcProgress">1/10</span>
+      <button class="fc-close" onclick="closeQuiz()">✕</button>
+    </div>
+    <div class="fc-mode-bar">
+      <button class="fc-mode-btn active" id="fcMode1" onclick="setQuizMode('vi2en')">🇻🇳 → EN</button>
+      <button class="fc-mode-btn" id="fcMode2" onclick="setQuizMode('en2vi')">EN → 🇻🇳</button>
+      <button class="fc-mode-btn" id="fcMode3" onclick="setQuizMode('listen')">🔊 Nghe viết</button>
+    </div>
+    <div class="fc-card" id="fcCard">
+      <div class="fc-prompt" id="fcPrompt">Nghĩa tiếng Việt</div>
+      <div class="fc-question" id="fcQuestion"></div>
+      <div class="fc-phonetic" id="fcPhonetic"></div>
+    </div>
+    <div class="fc-answer-area" id="fcAnswerArea">
+      <input type="text" class="fc-input" id="fcInput" placeholder="Gõ câu trả lời..." autocomplete="off" />
+      <button class="fc-mic-btn" id="fcMicBtn" onclick="fcStartListen()" data-tip="Nói câu trả lời">🎤</button>
+      <button class="fc-check-btn" id="fcCheckBtn" onclick="checkQuizAnswer()">Kiểm tra</button>
+    </div>
+    <div class="fc-reveal" id="fcReveal">
+      <div class="fc-reveal-word" id="fcRevealWord"></div>
+      <div class="fc-reveal-phonetic" id="fcRevealPhonetic"></div>
+      <div class="fc-reveal-meaning" id="fcRevealMeaning"></div>
+    </div>
+    <div class="fc-actions" id="fcActions" style="display:none">
+      <button class="fc-btn fc-btn-audio" onclick="fcPlayAudio()">🔊 Nghe</button>
+      <button class="fc-btn fc-btn-next" onclick="nextQuizCard()">Tiếp theo →</button>
+    </div>
+    <div class="fc-score" id="fcScore">
+      <span>✓ Đúng: <span class="fc-score-ok" id="fcOk">0</span></span>
+      <span>✗ Sai: <span class="fc-score-fail" id="fcFail">0</span></span>
+    </div>
+    <div class="fc-done" id="fcDone" style="display:none">
+      <h2>🎉 Hoàn thành!</h2>
+      <p id="fcDoneMsg"></p>
+      <button class="fc-done-btn" onclick="startQuiz()">🔄 Làm lại</button>
+      <button class="fc-done-btn secondary" onclick="closeQuiz()">Đóng</button>
+    </div>
   </div>
 </div>
 
@@ -1212,6 +1470,255 @@
     if (result) localStorage.setItem('meaning_' + word, result);
     return result;
   };
+
+  // ===== FLASHCARD QUIZ =====
+  let _fcWords = [];
+  let _fcIndex = 0;
+  let _fcOk = 0;
+  let _fcFail = 0;
+  let _fcMode = 'vi2en';
+  let _fcAnswered = false;
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function startQuiz() {
+    const words = getWords(activeTabId);
+    if (words.length < 2) { alert('Cần ít nhất 2 từ để luyện tập!'); return; }
+    _fcWords = shuffle(words);
+    _fcIndex = 0;
+    _fcOk = 0;
+    _fcFail = 0;
+    _fcAnswered = false;
+    document.getElementById('fcOverlay').classList.add('open');
+    document.getElementById('fcDone').style.display = 'none';
+    document.getElementById('fcCard').style.display = '';
+    document.getElementById('fcAnswerArea').style.display = '';
+    document.getElementById('fcScore').style.display = '';
+    document.getElementById('fcActions').style.display = 'none';
+    updateFcScore();
+    showQuizCard();
+  }
+
+  function closeQuiz() {
+    document.getElementById('fcOverlay').classList.remove('open');
+  }
+
+  function setQuizMode(mode) {
+    _fcMode = mode;
+    document.getElementById('fcMode1').classList.toggle('active', mode === 'vi2en');
+    document.getElementById('fcMode2').classList.toggle('active', mode === 'en2vi');
+    document.getElementById('fcMode3').classList.toggle('active', mode === 'listen');
+    _fcAnswered = false;
+    showQuizCard();
+  }
+
+  function showQuizCard() {
+    if (_fcIndex >= _fcWords.length) { showQuizDone(); return; }
+    const word = _fcWords[_fcIndex];
+    const meaning = localStorage.getItem('meaning_' + word) || '';
+    const phonetic = localStorage.getItem('phonetic_' + word) || '';
+    const prompt = document.getElementById('fcPrompt');
+    const question = document.getElementById('fcQuestion');
+    const phEl = document.getElementById('fcPhonetic');
+    const input = document.getElementById('fcInput');
+    const reveal = document.getElementById('fcReveal');
+    const actions = document.getElementById('fcActions');
+    const checkBtn = document.getElementById('fcCheckBtn');
+
+    reveal.classList.remove('show');
+    actions.style.display = 'none';
+    document.getElementById('fcAnswerArea').style.display = '';
+    checkBtn.style.display = '';
+    document.getElementById('fcMicBtn').style.display = (_fcMode === 'en2vi') ? 'none' : '';
+    input.value = '';
+    input.className = 'fc-input';
+    input.disabled = false;
+    _fcAnswered = false;
+    // Stop any active mic in flashcard
+    if (_fcRec) { _fcRec.abort(); _fcRec = null; }
+    document.getElementById('fcMicBtn').classList.remove('listening');
+    document.getElementById('fcMicBtn').textContent = '🎤';
+
+    document.getElementById('fcProgress').textContent = (_fcIndex + 1) + '/' + _fcWords.length;
+
+    if (_fcMode === 'vi2en') {
+      prompt.textContent = 'Nghĩa tiếng Việt';
+      question.textContent = meaning || '(chưa có nghĩa)';
+      question.className = 'fc-question vi';
+      phEl.textContent = '';
+      input.placeholder = 'Gõ từ tiếng Anh...';
+    } else if (_fcMode === 'en2vi') {
+      prompt.textContent = 'Từ tiếng Anh';
+      question.textContent = word;
+      question.className = 'fc-question';
+      phEl.textContent = phonetic;
+      input.placeholder = 'Gõ nghĩa tiếng Việt...';
+    } else {
+      prompt.textContent = '🔊 Nghe và viết lại';
+      question.textContent = '🎧';
+      question.className = 'fc-question';
+      phEl.textContent = '';
+      input.placeholder = 'Gõ từ bạn nghe được...';
+      setTimeout(() => fcPlayAudio(), 300);
+    }
+
+    setTimeout(() => input.focus(), 100);
+  }
+
+  function checkQuizAnswer() {
+    if (_fcAnswered) { nextQuizCard(); return; }
+    const word = _fcWords[_fcIndex];
+    const meaning = localStorage.getItem('meaning_' + word) || '';
+    const input = document.getElementById('fcInput');
+    const answer = input.value.trim();
+    if (!answer) return;
+
+    _fcAnswered = true;
+    const clean = s => s.trim().toLowerCase().replace(/[.,!?;:'"()]/g, '').trim();
+    let isCorrect;
+
+    if (_fcMode === 'vi2en' || _fcMode === 'listen') {
+      isCorrect = clean(answer) === clean(word);
+    } else {
+      isCorrect = clean(answer) === clean(meaning);
+    }
+
+    if (isCorrect) {
+      _fcOk++;
+      input.className = 'fc-input correct';
+    } else {
+      _fcFail++;
+      input.className = 'fc-input wrong';
+    }
+    input.disabled = true;
+    updateFcScore();
+
+    const phonetic = localStorage.getItem('phonetic_' + word) || '';
+    document.getElementById('fcRevealWord').textContent = word;
+    document.getElementById('fcRevealPhonetic').textContent = phonetic;
+    document.getElementById('fcRevealMeaning').textContent = meaning;
+    document.getElementById('fcReveal').classList.add('show');
+    document.getElementById('fcActions').style.display = '';
+    document.getElementById('fcCheckBtn').style.display = 'none';
+  }
+
+  function nextQuizCard() {
+    _fcIndex++;
+    showQuizCard();
+  }
+
+  function fcPlayAudio() {
+    if (_fcIndex >= _fcWords.length) return;
+    const word = _fcWords[_fcIndex];
+    const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=gtx`;
+    _sharedAudio.src = url;
+    _sharedAudio.play().catch(() => {});
+  }
+
+  function updateFcScore() {
+    document.getElementById('fcOk').textContent = _fcOk;
+    document.getElementById('fcFail').textContent = _fcFail;
+  }
+
+  function showQuizDone() {
+    document.getElementById('fcCard').style.display = 'none';
+    document.getElementById('fcAnswerArea').style.display = 'none';
+    document.getElementById('fcActions').style.display = 'none';
+    document.getElementById('fcReveal').classList.remove('show');
+    const total = _fcOk + _fcFail;
+    const pct = total ? Math.round(_fcOk / total * 100) : 0;
+    document.getElementById('fcDoneMsg').textContent = `Đúng ${_fcOk}/${total} (${pct}%)`;
+    document.getElementById('fcDone').style.display = '';
+  }
+
+  // Cache phonetic for flashcard
+  const origGetPhonetic = getPhonetic;
+  getPhonetic = async (word) => {
+    const result = await origGetPhonetic(word);
+    if (result) localStorage.setItem('phonetic_' + word, result);
+    return result;
+  };
+
+  // ===== FLASHCARD MIC (Speech Recognition) =====
+  let _fcRec = null;
+  function fcStartListen() {
+    if (!SpeechRecognition) { alert('Trình duyệt không hỗ trợ nhận diện giọng nói.'); return; }
+    if (_fcAnswered) return;
+    const micBtn = document.getElementById('fcMicBtn');
+
+    // Toggle: đang nghe → dừng
+    if (_fcRec) {
+      _fcRec.stop();
+      return;
+    }
+
+    // Pause audio to free mic on iOS
+    _sharedAudio.pause();
+    _sharedAudio.currentTime = 0;
+
+    getCachedMicStream().then(stream => {
+      const rec = new SpeechRecognition();
+      rec.lang = 'en-US';
+      rec.interimResults = true;
+      rec.maxAlternatives = 5;
+      _fcRec = rec;
+
+      micBtn.classList.add('listening');
+      micBtn.textContent = '⏹';
+
+      const input = document.getElementById('fcInput');
+      input.placeholder = '🎙 Đang nghe...';
+
+      rec.onresult = (e) => {
+        const res0 = e.results[0];
+        if (!res0.isFinal) {
+          input.value = res0[0].transcript;
+          return;
+        }
+        input.value = res0[0].transcript;
+        // Auto-check after getting final result
+        setTimeout(() => checkQuizAnswer(), 200);
+      };
+
+      rec.onspeechend = () => { rec.stop(); };
+
+      rec.onerror = (e) => {
+        if (e.error === 'aborted') return;
+        input.placeholder = e.error === 'no-speech' ? '🔇 Không nghe thấy — thử lại' : 'Lỗi: ' + e.error;
+      };
+
+      rec.onend = () => {
+        micBtn.classList.remove('listening');
+        micBtn.textContent = '🎤';
+        _fcRec = null;
+        if (!input.value) input.placeholder = 'Gõ câu trả lời...';
+      };
+
+      rec.start();
+    }).catch(() => {
+      micBtn.textContent = '🎤';
+    });
+  }
+
+  // Flashcard input Enter key
+  document.getElementById('fcInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      if (_fcAnswered) nextQuizCard();
+      else checkQuizAnswer();
+    }
+  });
+
+  // Close overlay on background click
+  document.getElementById('fcOverlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeQuiz();
+  });
 
   // ===== KHỞI TẠO =====
   const wordInput = document.getElementById('wordInput');
