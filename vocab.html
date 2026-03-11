@@ -406,16 +406,8 @@
     }
 
     /* ===== TOOLTIP ===== */
-    [data-tip] {
-      position: relative;
-    }
-
-    [data-tip]::after {
-      content: attr(data-tip);
-      position: absolute;
-      bottom: calc(100% + 8px);
-      left: 50%;
-      transform: translateX(-50%);
+    #tooltip {
+      position: fixed;
       background: #2d3748;
       color: white;
       font-size: 0.75rem;
@@ -423,41 +415,12 @@
       border-radius: 6px;
       white-space: nowrap;
       pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.15s, transform 0.15s;
-      transform: translateX(-50%) translateY(4px);
-      z-index: 999;
-      font-weight: normal;
-      font-style: normal;
-      line-height: 1.4;
-    }
-
-    [data-tip]::before {
-      content: '';
-      position: absolute;
-      bottom: calc(100% + 2px);
-      left: 50%;
-      transform: translateX(-50%);
-      border: 5px solid transparent;
-      border-top-color: #2d3748;
-      pointer-events: none;
+      z-index: 9999;
       opacity: 0;
       transition: opacity 0.15s;
-      z-index: 999;
+      line-height: 1.4;
     }
-
-    [data-tip]:hover::after,
-    [data-tip]:hover::before,
-    [data-tip].tip-show::after,
-    [data-tip].tip-show::before {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    [data-tip]:hover::before,
-    [data-tip].tip-show::before {
-      transform: translateX(-50%);
-    }
+    #tooltip.visible { opacity: 1; }
 
     @media (max-width: 480px) {
       body { padding: 10px; }
@@ -469,6 +432,7 @@
 </head>
 <body>
 
+<div id="tooltip"></div>
 <h1>📚 Từ Vựng Tiếng Anh</h1>
 
 <div class="tabs-wrapper">
@@ -699,21 +663,28 @@
     } catch { return ''; }
   }
 
+  // Persistent audio element — iOS Safari requires .play() called on same element within user gesture
+  const _audio = document.createElement('audio');
+  _audio.preload = 'none';
+  document.body.appendChild(_audio);
+
   function speak(word) {
     const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=gtx`;
-    new Audio(url).play();
+    _audio.src = url;
+    _audio.play().catch(() => {});
   }
 
   function speakAll() {
     const words = getWords(activeTabId);
     if (!words.length) return;
     let i = 0;
+    // Trigger first play synchronously inside user gesture, rest chain via onended
     function next() {
       if (i >= words.length) return;
       const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(words[i])}&tl=en&client=gtx`;
-      const audio = new Audio(url);
-      audio.onended = () => { i++; setTimeout(next, 500); };
-      audio.play();
+      _audio.onended = () => { i++; setTimeout(next, 500); };
+      _audio.src = url;
+      _audio.play().catch(() => {});
     }
     next();
   }
@@ -921,11 +892,50 @@
 
   wordInput.addEventListener('blur', () => setTimeout(closeSuggest, 150));
 
-  // Tooltip trên mobile (tap)
+  // ===== TOOLTIP (fixed-position, không bị clip bởi overflow) =====
+  const _tip = document.getElementById('tooltip');
+  let _tipTimer = null;
+
+  function showTip(el) {
+    const text = el.getAttribute('data-tip');
+    if (!text) return;
+    _tip.textContent = text;
+    const r = el.getBoundingClientRect();
+    _tip.style.left = '-9999px';
+    _tip.style.top = '-9999px';
+    _tip.classList.add('visible');
+    const tw = _tip.offsetWidth;
+    const th = _tip.offsetHeight;
+    let x = r.left + r.width / 2 - tw / 2;
+    let y = r.top - th - 8;
+    if (y < 4) y = r.bottom + 8; // flip xuống nếu không đủ chỗ
+    x = Math.max(4, Math.min(x, window.innerWidth - tw - 4));
+    _tip.style.left = x + 'px';
+    _tip.style.top = y + 'px';
+  }
+
+  function hideTip() {
+    _tip.classList.remove('visible');
+  }
+
+  // Desktop: hover
+  document.addEventListener('mouseover', (e) => {
+    const el = e.target.closest('[data-tip]');
+    if (el) showTip(el); else hideTip();
+  });
+  document.addEventListener('mouseout', (e) => {
+    if (!e.relatedTarget?.closest('[data-tip]')) hideTip();
+  });
+
+  // Mobile: tap
   document.addEventListener('touchstart', (e) => {
     const el = e.target.closest('[data-tip]');
-    document.querySelectorAll('.tip-show').forEach(t => t.classList.remove('tip-show'));
-    if (el) { el.classList.add('tip-show'); setTimeout(() => el.classList.remove('tip-show'), 2000); }
+    hideTip();
+    clearTimeout(_tipTimer);
+    if (el) {
+      showTip(el);
+      _tipTimer = setTimeout(hideTip, 2000);
+    }
   }, { passive: true });
 
   document.getElementById('tabsBar').addEventListener('scroll', updateScrollBtns);
