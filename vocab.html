@@ -434,7 +434,7 @@
 <body>
 
 <div id="tooltip"></div>
-<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v1.1</span></h1>
+<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v1.3</span></h1>
 
 <div class="tabs-wrapper">
   <div class="tabs-nav">
@@ -600,7 +600,7 @@
         </div>
         <div class="word-actions">
           <button class="btn-speak" data-tip="Nghe Google đọc từ này">🔊</button>
-          <button class="btn-mic" id="mb-${word}" onclick="startListen('${word}')" data-tip="Nói vào mic — Google kiểm tra phát âm">🎤</button>
+          <button class="btn-mic" id="mb-${word}" onclick="startListen('${word}')" data-tip="Nhấn → nói từ → tự dừng khi bạn ngừng nói">🎤</button>
           <button class="btn-delete" onclick="deleteWord('${word}')" data-tip="Xóa từ này khỏi danh sách">✕</button>
         </div>
       `;
@@ -710,12 +710,33 @@
 
   // ===== SPEECH RECOGNITION =====
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let _activeRec = null;
+  let _activeRecWord = null;
 
   function startListen(word) {
     if (!SpeechRecognition) {
-      alert('Cần dùng Chrome để dùng tính năng này.');
+      alert('Trình duyệt không hỗ trợ nhận diện giọng nói.');
       return;
     }
+
+    // Nếu đang ghi âm cùng từ → dừng
+    if (_activeRec && _activeRecWord === word) {
+      _activeRec.stop();
+      return;
+    }
+
+    // Nếu đang ghi âm từ khác → dừng cái cũ trước
+    if (_activeRec) {
+      _activeRec.onend = null;
+      _activeRec.onerror = null;
+      _activeRec.onresult = null;
+      _activeRec.abort();
+      const oldBtn = document.getElementById('mb-' + _activeRecWord);
+      if (oldBtn) { oldBtn.classList.remove('listening'); oldBtn.textContent = '🎤'; }
+      _activeRec = null;
+      _activeRecWord = null;
+    }
+
     const btn = document.getElementById('mb-' + word);
     const result = document.getElementById('mr-' + word);
 
@@ -724,26 +745,34 @@
     rec.interimResults = false;
     rec.maxAlternatives = 5;
 
+    _activeRec = rec;
+    _activeRecWord = word;
+
     btn.classList.add('listening');
     btn.textContent = '⏹';
     result.className = 'mic-result info';
-    result.textContent = 'Đang nghe...';
+    result.textContent = '🎙 Hãy nói "' + word + '" — tự dừng khi bạn ngừng nói';
 
     rec.onresult = (e) => {
       const alts = Array.from(e.results[0]).map(r => r.transcript.trim().toLowerCase());
       const matched = alts.includes(word.toLowerCase());
       result.className = 'mic-result ' + (matched ? 'correct' : 'wrong');
-      result.textContent = matched ? `✓ Google nhận ra: "${alts[0]}"` : `✗ Google nghe thấy: "${alts[0]}"`;
+      result.textContent = matched ? `✓ Chính xác! Google nhận ra: "${alts[0]}"` : `✗ Chưa đúng — Google nghe: "${alts[0]}"`;
     };
 
     rec.onerror = (e) => {
+      if (e.error === 'aborted') return;
       result.className = 'mic-result wrong';
-      result.textContent = e.error === 'no-speech' ? 'Không nghe thấy gì' : 'Lỗi: ' + e.error;
+      result.textContent = e.error === 'no-speech' ? '🔇 Không nghe thấy gì — hãy thử lại' : 'Lỗi: ' + e.error;
     };
 
     rec.onend = () => {
       btn.classList.remove('listening');
       btn.textContent = '🎤';
+      if (_activeRec === rec) {
+        _activeRec = null;
+        _activeRecWord = null;
+      }
     };
 
     rec.start();
