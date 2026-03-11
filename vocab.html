@@ -465,7 +465,7 @@
 <body>
 
 <div id="tooltip"></div>
-<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v1.6</span></h1>
+<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v1.7</span></h1>
 
 <div class="tabs-wrapper">
   <div class="tabs-nav">
@@ -803,9 +803,33 @@
       _activeRecWord = null;
     }
 
+    // Dừng mọi audio đang phát để giải phóng mic trên iOS
+    _sharedAudio.pause();
+    _sharedAudio.currentTime = 0;
+    document.querySelectorAll('.vocab-card audio').forEach(a => { a.pause(); a.currentTime = 0; });
+
     const btn = document.getElementById('mb-' + word);
     const result = document.getElementById('mr-' + word);
 
+    // Kiểm tra mic permission trước
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        // Mic OK — dừng stream ngay (chỉ test)
+        stream.getTracks().forEach(t => t.stop());
+        vlog(`🎙 Mic permission OK, tracks: ${stream.getAudioTracks().length}`, 'ok');
+        doStartRec(word, btn, result);
+      }).catch(err => {
+        vlog(`🎙 Mic permission DENIED: ${err.name} — ${err.message}`, 'err');
+        result.className = 'mic-result wrong';
+        result.textContent = '❌ Không truy cập được mic — kiểm tra quyền micro trong Cài đặt';
+      });
+    } else {
+      vlog(`🎙 mediaDevices không có — skip mic check`);
+      doStartRec(word, btn, result);
+    }
+  }
+
+  function doStartRec(word, btn, result) {
     const rec = new SpeechRecognition();
     rec.lang = 'en-US';
     rec.interimResults = false;
@@ -835,7 +859,10 @@
     };
     rec.onsoundstart = () => { _gotSound = true; vlog(`🎙 soundstart — phát hiện âm thanh (+${Date.now() - _startTime}ms)`); };
     rec.onspeechstart = () => { _gotSpeech = true; vlog(`🎙 speechstart — phát hiện giọng nói (+${Date.now() - _startTime}ms)`); };
-    rec.onspeechend = () => vlog(`🎙 speechend — ngừng nói (+${Date.now() - _startTime}ms)`);
+    rec.onspeechend = () => {
+      vlog(`🎙 speechend — ngừng nói (+${Date.now() - _startTime}ms), gọi rec.stop() để thúc trả result`);
+      rec.stop();
+    };
     rec.onsoundend = () => vlog(`🎙 soundend — hết âm thanh (+${Date.now() - _startTime}ms)`);
     rec.onaudioend = () => {
       const micDuration = _audioStartTime ? Date.now() - _audioStartTime : 0;
