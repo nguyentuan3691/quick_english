@@ -598,11 +598,22 @@
           <span class="mic-result" id="mr-${word}"></span>
         </div>
         <div class="word-actions">
-          <button class="btn-speak" onclick="speak('${word}')" data-tip="Nghe Google đọc từ này">🔊</button>
+          <button class="btn-speak" data-tip="Nghe Google đọc từ này">🔊</button>
           <button class="btn-mic" id="mb-${word}" onclick="startListen('${word}')" data-tip="Nói vào mic — Google kiểm tra phát âm">🎤</button>
           <button class="btn-delete" onclick="deleteWord('${word}')" data-tip="Xóa từ này khỏi danh sách">✕</button>
         </div>
       `;
+
+      // iOS: mỗi card có <audio> riêng, src đã set sẵn, play() gọi trực tiếp từ user gesture
+      const au = document.createElement('audio');
+      au.preload = 'none';
+      au.src = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=gtx`;
+      card.querySelector('.word-actions').prepend(au);
+      card.querySelector('.btn-speak').addEventListener('click', () => {
+        au.currentTime = 0;
+        au.play().catch(() => {});
+      });
+
       list.appendChild(card);
 
       translate(word).then(m => {
@@ -663,28 +674,26 @@
     } catch { return ''; }
   }
 
-  // Persistent audio element — iOS Safari requires .play() called on same element within user gesture
-  const _audio = document.createElement('audio');
-  _audio.preload = 'none';
-  document.body.appendChild(_audio);
-
+  // Tìm audio element trong card tương ứng và play
   function speak(word) {
-    const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=gtx`;
-    _audio.src = url;
-    _audio.play().catch(() => {});
+    const cards = document.querySelectorAll('.vocab-card');
+    for (const card of cards) {
+      if (card.querySelector('.word-text')?.textContent === word) {
+        const au = card.querySelector('audio');
+        if (au) { au.currentTime = 0; au.play().catch(() => {}); return; }
+      }
+    }
   }
 
   function speakAll() {
-    const words = getWords(activeTabId);
-    if (!words.length) return;
+    const audioEls = document.querySelectorAll('.vocab-card audio');
+    if (!audioEls.length) return;
     let i = 0;
-    // Trigger first play synchronously inside user gesture, rest chain via onended
     function next() {
-      if (i >= words.length) return;
-      const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(words[i])}&tl=en&client=gtx`;
-      _audio.onended = () => { i++; setTimeout(next, 500); };
-      _audio.src = url;
-      _audio.play().catch(() => {});
+      if (i >= audioEls.length) return;
+      audioEls[i].onended = () => { i++; setTimeout(next, 500); };
+      audioEls[i].currentTime = 0;
+      audioEls[i].play().catch(() => {});
     }
     next();
   }
