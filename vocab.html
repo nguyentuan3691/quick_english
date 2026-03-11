@@ -433,7 +433,7 @@
 <body>
 
 <div id="tooltip"></div>
-<h1>📚 Từ Vựng Tiếng Anh 1.0</h1>
+<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v1.0</span></h1>
 
 <div class="tabs-wrapper">
   <div class="tabs-nav">
@@ -604,12 +604,17 @@
         </div>
       `;
 
-      // iOS: mỗi card có <audio> riêng, src đã set sẵn, play() gọi trực tiếp từ user gesture
+      // iOS: nút loa chính là <audio> element, user tap trực tiếp → play() hợp lệ
       const au = document.createElement('audio');
       au.preload = 'none';
       au.src = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=gtx`;
+      au.dataset.word = word;
       card.querySelector('.word-actions').prepend(au);
-      card.querySelector('.btn-speak').addEventListener('click', () => {
+
+      const speakBtn = card.querySelector('.btn-speak');
+      speakBtn.addEventListener('click', () => {
+        // Unlock shared audio trên iOS bằng cách play silent rồi dùng cho speakAll
+        _sharedAudio.play().then(() => _sharedAudio.pause()).catch(() => {});
         au.currentTime = 0;
         au.play().catch(() => {});
       });
@@ -674,27 +679,31 @@
     } catch { return ''; }
   }
 
-  // Tìm audio element trong card tương ứng và play
+  // Shared audio — dùng cho speak(word) gọi programmatic & speakAll()
+  // Trên iOS, sau khi user tap unlock 1 lần, element này có thể play() tự do
+  const _sharedAudio = document.createElement('audio');
+  _sharedAudio.preload = 'none';
+  document.body.appendChild(_sharedAudio);
+
   function speak(word) {
-    const cards = document.querySelectorAll('.vocab-card');
-    for (const card of cards) {
-      if (card.querySelector('.word-text')?.textContent === word) {
-        const au = card.querySelector('audio');
-        if (au) { au.currentTime = 0; au.play().catch(() => {}); return; }
-      }
-    }
+    const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=gtx`;
+    _sharedAudio.src = url;
+    _sharedAudio.play().catch(() => {});
   }
 
   function speakAll() {
-    const audioEls = document.querySelectorAll('.vocab-card audio');
-    if (!audioEls.length) return;
+    const words = getWords(activeTabId);
+    if (!words.length) return;
     let i = 0;
     function next() {
-      if (i >= audioEls.length) return;
-      audioEls[i].onended = () => { i++; setTimeout(next, 500); };
-      audioEls[i].currentTime = 0;
-      audioEls[i].play().catch(() => {});
+      if (i >= words.length) return;
+      const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(words[i])}&tl=en&client=gtx`;
+      _sharedAudio.onended = () => { i++; setTimeout(next, 500); };
+      _sharedAudio.src = url;
+      _sharedAudio.play().catch(() => {});
     }
+    // Từ đầu tiên play() trong user gesture → unlock
+    // Các từ tiếp theo dùng cùng element đã unlock → iOS cho phép
     next();
   }
 
