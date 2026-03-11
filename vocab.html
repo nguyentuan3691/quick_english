@@ -297,6 +297,18 @@
     }
     .btn-quiz:hover { background: #dd6b20; }
 
+    .btn-match {
+      padding: 8px 14px;
+      background: #38b2ac;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      min-height: 38px;
+    }
+    .btn-match:hover { background: #319795; }
+
     .btn-clear-all {
       padding: 8px 12px;
       background: #e2e8f0;
@@ -704,6 +716,166 @@
     .fc-done-btn.secondary { background: #e2e8f0; color: #4a5568; }
     .fc-done-btn.secondary:hover { background: #cbd5e0; }
 
+    /* ===== WORD MATCH ===== */
+    .wm-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .wm-overlay.open { display: flex; }
+    .wm-box {
+      background: white;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .wm-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #38b2ac;
+      color: white;
+    }
+    .wm-header-title { font-weight: 700; font-size: 1rem; }
+    .wm-header-info { font-size: 0.8rem; opacity: 0.9; }
+    .wm-close {
+      background: none; border: none; color: white;
+      font-size: 1.3rem; cursor: pointer; padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .wm-close:hover { background: rgba(255,255,255,0.2); }
+    .wm-board {
+      display: flex;
+      gap: 12px;
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .wm-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .wm-col > div:not(.wm-col-title) {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+    .wm-col-title {
+      font-size: 0.75rem;
+      color: #a0aec0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-align: center;
+      padding-bottom: 4px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .wm-tile {
+      padding: 12px 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      text-align: center;
+      transition: all 0.15s;
+      user-select: none;
+      line-height: 1.3;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+    }
+    .wm-tile:hover { border-color: #90cdf4; }
+    .wm-tile.en { font-weight: 700; color: #2d3748; }
+    .wm-tile.vi { color: #718096; font-style: italic; flex-direction: column; gap: 6px; }
+    .wm-tile-img {
+      width: 70px;
+      height: 70px;
+      border-radius: 8px;
+      object-fit: cover;
+      display: none;
+    }
+    .wm-tile-img.loaded { display: block; }
+    .wm-tile-text.hidden { display: none; }
+    .wm-tile.selected {
+      border-color: #4299e1;
+      background: #ebf8ff;
+      box-shadow: 0 0 0 2px rgba(66,153,225,0.3);
+    }
+    .wm-tile.matched {
+      border-color: #48bb78;
+      background: #f0fff4;
+      color: #276749;
+      cursor: default;
+      opacity: 0.7;
+    }
+    .wm-tile.wrong {
+      border-color: #fc8181;
+      background: #fff5f5;
+      animation: wmShake 0.4s;
+    }
+    @keyframes wmShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+    .wm-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-top: 1px solid #e2e8f0;
+      background: #f7fafc;
+    }
+    .wm-score {
+      font-size: 0.85rem;
+      color: #718096;
+    }
+    .wm-score b { color: #276749; }
+    .wm-timer {
+      font-size: 0.85rem;
+      color: #718096;
+      font-family: 'Courier New', monospace;
+    }
+    .wm-done {
+      padding: 32px 16px;
+      text-align: center;
+      display: none;
+    }
+    .wm-done.show { display: block; }
+    .wm-done h2 { font-size: 1.3rem; color: #2d3748; margin-bottom: 8px; }
+    .wm-done p { color: #718096; margin-bottom: 16px; font-size: 1rem; }
+    .wm-done-btn {
+      padding: 10px 24px;
+      background: #38b2ac;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 4px;
+    }
+    .wm-done-btn:hover { background: #319795; }
+    .wm-done-btn.secondary { background: #e2e8f0; color: #4a5568; }
+    .wm-done-btn.secondary:hover { background: #cbd5e0; }
+
     /* ===== TOOLTIP ===== */
     #tooltip {
       position: fixed;
@@ -732,7 +904,7 @@
 <body>
 
 <div id="tooltip"></div>
-<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v2.0</span></h1>
+<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v2.1</span></h1>
 
 <div class="tabs-wrapper">
   <div class="tabs-nav">
@@ -753,6 +925,7 @@
       <span class="count-label" id="countLabel">0 từ</span>
       <div class="toolbar-right">
         <button class="btn-quiz" onclick="startQuiz()" data-tip="Luyện tập flashcard từ vựng">🎴 Luyện tập</button>
+        <button class="btn-match" onclick="startMatch()" data-tip="Ghép từ tiếng Anh với nghĩa tiếng Việt">🧩 Ghép từ</button>
         <button class="btn-speak-all" onclick="speakAll()" data-tip="Đọc lần lượt tất cả từ trong bài">▶ Đọc tất cả</button>
         <button class="btn-clear-all" onclick="clearAll()" data-tip="Xóa toàn bộ từ trong bài này">Xóa tất cả</button>
       </div>
@@ -814,6 +987,36 @@
       <p id="fcDoneMsg"></p>
       <button class="fc-done-btn" onclick="startQuiz()">🔄 Làm lại</button>
       <button class="fc-done-btn secondary" onclick="closeQuiz()">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<div class="wm-overlay" id="wmOverlay">
+  <div class="wm-box">
+    <div class="wm-header">
+      <span class="wm-header-title">🧩 Ghép từ</span>
+      <span class="wm-header-info" id="wmHeaderInfo"></span>
+      <button class="wm-close" onclick="closeMatch()">✕</button>
+    </div>
+    <div class="wm-board" id="wmBoard">
+      <div class="wm-col">
+        <div class="wm-col-title">English</div>
+        <div id="wmColEn"></div>
+      </div>
+      <div class="wm-col">
+        <div class="wm-col-title">Tiếng Việt</div>
+        <div id="wmColVi"></div>
+      </div>
+    </div>
+    <div class="wm-footer" id="wmFooter">
+      <span class="wm-score" id="wmScore"></span>
+      <span class="wm-timer" id="wmTimer">0:00</span>
+    </div>
+    <div class="wm-done" id="wmDone">
+      <h2>🎉 Hoàn thành!</h2>
+      <p id="wmDoneMsg"></p>
+      <button class="wm-done-btn" onclick="startMatch()">🔄 Chơi lại</button>
+      <button class="wm-done-btn secondary" onclick="closeMatch()">Đóng</button>
     </div>
   </div>
 </div>
@@ -1771,6 +1974,165 @@
   // Close overlay on background click
   document.getElementById('fcOverlay').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeQuiz();
+  });
+
+  // ===== WORD MATCH GAME =====
+  let _wmPairs = [];
+  let _wmSelected = null;
+  let _wmMatched = 0;
+  let _wmAttempts = 0;
+  let _wmTimerInterval = null;
+  let _wmSeconds = 0;
+
+  function startMatch() {
+    const words = getWords(activeTabId);
+    if (words.length < 3) { alert('Cần ít nhất 3 từ để chơi ghép từ!'); return; }
+    // Pick up to 8 words that have meanings cached
+    const pool = words.filter(w => localStorage.getItem('meaning_' + w));
+    if (pool.length < 3) { alert('Chưa đủ nghĩa — hãy mở danh sách từ để tải nghĩa trước!'); return; }
+    const picked = shuffle(pool).slice(0, 8);
+    _wmPairs = picked.map(w => ({ en: w, vi: localStorage.getItem('meaning_' + w) }));
+    _wmSelected = null;
+    _wmMatched = 0;
+    _wmAttempts = 0;
+    _wmSeconds = 0;
+
+    document.getElementById('wmOverlay').classList.add('open');
+    document.getElementById('wmDone').classList.remove('show');
+    document.getElementById('wmBoard').style.display = '';
+    document.getElementById('wmFooter').style.display = '';
+    renderMatchBoard();
+    updateWmScore();
+
+    clearInterval(_wmTimerInterval);
+    document.getElementById('wmTimer').textContent = '0:00';
+    _wmTimerInterval = setInterval(() => {
+      _wmSeconds++;
+      const m = Math.floor(_wmSeconds / 60);
+      const s = _wmSeconds % 60;
+      document.getElementById('wmTimer').textContent = m + ':' + String(s).padStart(2, '0');
+    }, 1000);
+  }
+
+  function closeMatch() {
+    document.getElementById('wmOverlay').classList.remove('open');
+    clearInterval(_wmTimerInterval);
+  }
+
+  function renderMatchBoard() {
+    const colEn = document.getElementById('wmColEn');
+    const colVi = document.getElementById('wmColVi');
+    colEn.innerHTML = '';
+    colVi.innerHTML = '';
+    document.getElementById('wmHeaderInfo').textContent = _wmPairs.length + ' cặp';
+
+    const enOrder = shuffle([..._wmPairs]);
+    const viOrder = shuffle([..._wmPairs]);
+
+    enOrder.forEach(pair => {
+      const tile = document.createElement('div');
+      tile.className = 'wm-tile en';
+      tile.textContent = pair.en;
+      tile.dataset.word = pair.en;
+      tile.onclick = () => wmSelectTile(tile, 'en');
+      colEn.appendChild(tile);
+    });
+
+    viOrder.forEach(pair => {
+      const tile = document.createElement('div');
+      tile.className = 'wm-tile vi';
+      const imgUrl = localStorage.getItem('img_' + pair.en);
+      const hasImg = !!imgUrl;
+      if (hasImg) {
+        const img = document.createElement('img');
+        img.className = 'wm-tile-img';
+        img.src = imgUrl;
+        img.onload = () => img.classList.add('loaded');
+        tile.appendChild(img);
+      }
+      const txt = document.createElement('span');
+      txt.textContent = pair.vi;
+      txt.className = hasImg ? 'wm-tile-text hidden' : 'wm-tile-text';
+      tile.appendChild(txt);
+      tile.dataset.word = pair.en;
+      if (hasImg) tile.setAttribute('data-tip', pair.vi);
+      tile.onclick = () => wmSelectTile(tile, 'vi');
+      colVi.appendChild(tile);
+    });
+  }
+
+  function wmSelectTile(tile, side) {
+    if (tile.classList.contains('matched')) return;
+
+    // Remove previous wrong state
+    document.querySelectorAll('.wm-tile.wrong').forEach(t => t.classList.remove('wrong'));
+
+    if (!_wmSelected) {
+      // First selection
+      _wmSelected = { tile, side, word: tile.dataset.word };
+      tile.classList.add('selected');
+      return;
+    }
+
+    // Clicked same side → switch selection
+    if (_wmSelected.side === side) {
+      _wmSelected.tile.classList.remove('selected');
+      _wmSelected = { tile, side, word: tile.dataset.word };
+      tile.classList.add('selected');
+      return;
+    }
+
+    // Different side → check match
+    _wmAttempts++;
+    const enWord = side === 'en' ? tile.dataset.word : _wmSelected.word;
+    const viWord = side === 'vi' ? tile.dataset.word : _wmSelected.word;
+
+    if (enWord === viWord) {
+      // Correct match!
+      tile.classList.add('matched');
+      tile.classList.remove('selected');
+      _wmSelected.tile.classList.add('matched');
+      _wmSelected.tile.classList.remove('selected');
+      _wmMatched++;
+      _wmSelected = null;
+      updateWmScore();
+
+      // Play audio for matched word
+      const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(enWord)}&tl=en&client=gtx`;
+      _sharedAudio.src = url;
+      _sharedAudio.play().catch(() => {});
+
+      if (_wmMatched >= _wmPairs.length) {
+        clearInterval(_wmTimerInterval);
+        setTimeout(showMatchDone, 600);
+      }
+    } else {
+      // Wrong match
+      tile.classList.add('wrong');
+      _wmSelected.tile.classList.add('wrong');
+      _wmSelected.tile.classList.remove('selected');
+      _wmSelected = null;
+      updateWmScore();
+    }
+  }
+
+  function updateWmScore() {
+    document.getElementById('wmScore').innerHTML = `<b>${_wmMatched}</b>/${_wmPairs.length} cặp · ${_wmAttempts} lần thử`;
+  }
+
+  function showMatchDone() {
+    document.getElementById('wmBoard').style.display = 'none';
+    document.getElementById('wmFooter').style.display = 'none';
+    const m = Math.floor(_wmSeconds / 60);
+    const s = _wmSeconds % 60;
+    const time = m + ':' + String(s).padStart(2, '0');
+    document.getElementById('wmDoneMsg').textContent = `Ghép ${_wmPairs.length} cặp trong ${time} với ${_wmAttempts} lần thử`;
+    document.getElementById('wmDone').classList.add('show');
+  }
+
+  // Close overlay on background click
+  document.getElementById('wmOverlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeMatch();
   });
 
   // ===== KHỞI TẠO =====
