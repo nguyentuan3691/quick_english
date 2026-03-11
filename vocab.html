@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Từ Vựng Tiếng Anh</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2d3748;
+      margin-bottom: 16px;
+      font-size: 1.6rem;
+    }
+
+    /* ===== TABS ===== */
+    .tabs-wrapper {
+      max-width: 700px;
+      margin: 0 auto 20px;
+    }
+
+    .tabs-nav {
+      display: flex;
+      align-items: flex-end;
+      position: relative;
+    }
+
+    .tabs-scroll-btn {
+      flex-shrink: 0;
+      width: 30px;
+      min-height: 44px;
+      background: #e2e8f0;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: #4a5568;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+      z-index: 2;
+    }
+
+    .tabs-scroll-btn:first-child { border-radius: 8px 0 0 0; }
+    .tabs-scroll-btn:last-child  { border-radius: 0 8px 0 0; }
+    .tabs-scroll-btn:hover { background: #cbd5e0; }
+    .tabs-scroll-btn:disabled { opacity: 0.3; cursor: default; }
+
+    .tabs-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      border-bottom: 2px solid #cbd5e0;
+      overflow-x: auto;
+      overflow-y: visible;
+      padding-bottom: 0;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+    }
+
+    .tabs-bar::-webkit-scrollbar { display: none; }
+
+    .tab {
+      padding: 8px 12px;
+      border-radius: 8px 8px 0 0;
+      border: 2px solid transparent;
+      background: #e2e8f0;
+      color: #718096;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.15s;
+      user-select: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-height: 44px;
+    }
+
+    .tab:hover { background: #cbd5e0; }
+
+    .tab.active {
+      background: white;
+      border-color: #cbd5e0 #cbd5e0 white #cbd5e0;
+      color: #2d3748;
+      font-weight: 600;
+      margin-bottom: -2px;
+      z-index: 1;
+    }
+
+    .tab-name-input {
+      border: none;
+      background: transparent;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #2d3748;
+      width: 80px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .tab-edit {
+      font-size: 0.7rem;
+      color: #a0aec0;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+
+    .tab.active .tab-edit { color: #4299e1; }
+    .tab-edit:hover { color: #2b6cb0 !important; }
+
+    .tab-close {
+      font-size: 0.75rem;
+      color: #a0aec0;
+      cursor: pointer;
+      padding: 2px 5px;
+      border-radius: 4px;
+      min-width: 22px;
+      text-align: center;
+    }
+
+    .tab-close:hover { background: #fc8181; color: white; }
+
+    .btn-new-tab {
+      padding: 8px 12px;
+      background: #4299e1;
+      color: white;
+      border: none;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-height: 44px;
+    }
+
+    .btn-new-tab:hover { background: #3182ce; }
+
+    /* ===== CONTENT ===== */
+    .tab-content {
+      background: white;
+      border: 2px solid #cbd5e0;
+      border-top: none;
+      border-radius: 0 0 12px 12px;
+      padding: 16px;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .input-wrap {
+      flex: 1;
+      position: relative;
+      min-width: 0;
+    }
+
+    .input-area input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 1rem;
+      border: 2px solid #cbd5e0;
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-area input:focus { border-color: #4299e1; }
+
+    .suggest-list {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: white;
+      border: 2px solid #4299e1;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      z-index: 100;
+      overflow: hidden;
+      display: none;
+    }
+
+    .suggest-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      border-bottom: 1px solid #f0f4f8;
+    }
+
+    .suggest-item:last-child { border-bottom: none; }
+
+    .suggest-item:hover, .suggest-item.focused {
+      background: #ebf8ff;
+    }
+
+    .suggest-item .s-word { font-weight: 700; color: #2d3748; }
+    .suggest-item .s-word mark {
+      background: #bee3f8;
+      color: #2b6cb0;
+      border-radius: 3px;
+      padding: 0 1px;
+    }
+    .suggest-item .s-meaning { color: #718096; font-size: 0.85rem; font-style: italic; }
+    .suggest-item .s-badge {
+      margin-left: auto;
+      font-size: 0.75rem;
+      background: #c6f6d5;
+      color: #276749;
+      padding: 1px 7px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .suggest-item .s-badge.new {
+      background: #e9d8fd;
+      color: #553c9a;
+    }
+
+    .suggest-divider {
+      font-size: 0.72rem;
+      color: #a0aec0;
+      padding: 4px 14px;
+      background: #f7fafc;
+      border-bottom: 1px solid #f0f4f8;
+    }
+
+    .btn-add {
+      padding: 12px 18px;
+      background: #4299e1;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .btn-add:hover { background: #3182ce; }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .count-label { color: #718096; font-size: 0.9rem; }
+
+    .toolbar-right { display: flex; gap: 8px; }
+
+    .btn-speak-all {
+      padding: 8px 14px;
+      background: #9f7aea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      min-height: 38px;
+    }
+
+    .btn-speak-all:hover { background: #805ad5; }
+
+    .btn-clear-all {
+      padding: 8px 12px;
+      background: #e2e8f0;
+      color: #718096;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      min-height: 38px;
+    }
+
+    .btn-clear-all:hover { background: #cbd5e0; }
+
+    /* ===== VOCAB CARDS ===== */
+    .vocab-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .vocab-list::-webkit-scrollbar { width: 5px; }
+    .vocab-list::-webkit-scrollbar-track { background: #f0f4f8; border-radius: 4px; }
+    .vocab-list::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
+    .vocab-list::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
+
+    .vocab-card {
+      background: #f7fafc;
+      border-radius: 10px;
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .word-info {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 4px 8px;
+      min-width: 0;
+    }
+
+    .word-actions {
+      display: flex;
+      flex-direction: row;
+      gap: 6px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .word-meta { display: none; }
+
+    .word-text {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #2d3748;
+    }
+
+    .word-phonetic {
+      font-size: 0.8rem;
+      color: #4299e1;
+    }
+
+    .word-meaning {
+      font-size: 0.85rem;
+      color: #718096;
+      font-style: italic;
+      width: 100%;
+    }
+
+    .word-meaning.loading { color: #a0aec0; }
+
+    .mic-result {
+      font-size: 0.78rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      display: none;
+    }
+
+    .mic-result.correct { background: #c6f6d5; color: #276749; display: inline; }
+    .mic-result.wrong   { background: #fed7d7; color: #9b2c2c; display: inline; }
+    .mic-result.info    { background: #ebf8ff; color: #2b6cb0; display: inline; }
+
+    .btn-speak, .btn-mic, .btn-delete {
+      padding: 7px 10px;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      min-height: 34px;
+      min-width: 34px;
+    }
+
+    .btn-speak { background: #48bb78; }
+    .btn-speak:hover { background: #38a169; }
+
+    .btn-mic { background: #ed8936; }
+    .btn-mic:hover { background: #dd6b20; }
+    .btn-mic.listening { background: #e53e3e; animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .btn-delete { background: #fc8181; }
+    .btn-delete:hover { background: #e53e3e; }
+
+    .empty-msg {
+      text-align: center;
+      color: #a0aec0;
+      padding: 30px 0;
+      font-size: 0.95rem;
+    }
+
+    /* ===== TOOLTIP ===== */
+    [data-tip] {
+      position: relative;
+    }
+
+    [data-tip]::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2d3748;
+      color: white;
+      font-size: 0.75rem;
+      padding: 5px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s, transform 0.15s;
+      transform: translateX(-50%) translateY(4px);
+      z-index: 999;
+      font-weight: normal;
+      font-style: normal;
+      line-height: 1.4;
+    }
+
+    [data-tip]::before {
+      content: '';
+      position: absolute;
+      bottom: calc(100% + 2px);
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #2d3748;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 999;
+    }
+
+    [data-tip]:hover::after,
+    [data-tip]:hover::before,
+    [data-tip].tip-show::after,
+    [data-tip].tip-show::before {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    [data-tip]:hover::before,
+    [data-tip].tip-show::before {
+      transform: translateX(-50%);
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 10px; }
+      h1 { font-size: 1.3rem; margin-bottom: 12px; }
+      .tab-content { padding: 12px; }
+      .tab-name-input { width: 65px; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>📚 Từ Vựng Tiếng Anh</h1>
+
+<div class="tabs-wrapper">
+  <div class="tabs-nav">
+    <button class="tabs-scroll-btn" id="scrollLeft" onclick="scrollTabs(-1)" data-tip="Cuộn tab sang trái">◀</button>
+    <div class="tabs-bar" id="tabsBar"></div>
+    <button class="tabs-scroll-btn" id="scrollRight" onclick="scrollTabs(1)" data-tip="Cuộn tab sang phải">▶</button>
+    <button class="btn-new-tab" onclick="newTab()" data-tip="Tạo bài học mới">+</button>
+  </div>
+  <div class="tab-content">
+    <div class="input-area">
+      <div class="input-wrap">
+        <input type="text" id="wordInput" placeholder="Nhập hoặc tìm từ tiếng Anh..." autofocus autocomplete="off" />
+        <div class="suggest-list" id="suggestList"></div>
+      </div>
+      <button class="btn-add" onclick="addWord()" data-tip="Thêm từ vào danh sách (Enter)">+ Thêm</button>
+    </div>
+    <div class="toolbar">
+      <span class="count-label" id="countLabel">0 từ</span>
+      <div class="toolbar-right">
+        <button class="btn-speak-all" onclick="speakAll()" data-tip="Đọc lần lượt tất cả từ trong bài">▶ Đọc tất cả</button>
+        <button class="btn-clear-all" onclick="clearAll()" data-tip="Xóa toàn bộ từ trong bài này">Xóa tất cả</button>
+      </div>
+    </div>
+    <div class="vocab-list" id="vocabList"></div>
+    <p class="empty-msg" id="emptyMsg">Chưa có từ nào. Thêm từ đầu tiên nhé! 👆</p>
+  </div>
+</div>
+
+<script>
+  // ===== DỮ LIỆU =====
+  let tabs = JSON.parse(localStorage.getItem('vocab_tabs') || 'null');
+  if (!tabs) {
+    tabs = [{ id: 'tab_' + Date.now(), name: 'Bài 1' }];
+    saveTabs();
+  }
+  let activeTabId = localStorage.getItem('vocab_active_tab') || tabs[0].id;
+  if (!tabs.find(t => t.id === activeTabId)) activeTabId = tabs[0].id;
+
+  function saveTabs() {
+    localStorage.setItem('vocab_tabs', JSON.stringify(tabs));
+  }
+
+  function getWords(tabId) {
+    return JSON.parse(localStorage.getItem('vocab_words_' + tabId) || '[]');
+  }
+
+  function setWords(tabId, words) {
+    localStorage.setItem('vocab_words_' + tabId, JSON.stringify(words));
+  }
+
+  // ===== RENDER TABS =====
+  function renderTabs() {
+    const bar = document.getElementById('tabsBar');
+    bar.innerHTML = '';
+
+    tabs.forEach(tab => {
+      const el = document.createElement('div');
+      el.className = 'tab' + (tab.id === activeTabId ? ' active' : '');
+      el.onclick = (e) => {
+        if (e.target.classList.contains('tab-close')) return;
+        if (e.target.classList.contains('tab-name-input') && !e.target.readOnly) return;
+        switchTab(tab.id);
+      };
+
+      const nameInput = document.createElement('input');
+      nameInput.className = 'tab-name-input';
+      nameInput.value = tab.name;
+      nameInput.readOnly = true;
+
+      function startEdit() {
+        nameInput.readOnly = false;
+        nameInput.focus();
+        nameInput.select();
+      }
+
+      nameInput.onblur = () => {
+        nameInput.readOnly = true;
+        tab.name = nameInput.value.trim() || tab.name;
+        nameInput.value = tab.name;
+        saveTabs();
+        renderTabs();
+      };
+      nameInput.onkeydown = (e) => {
+        if (e.key === 'Enter') nameInput.blur();
+        e.stopPropagation();
+      };
+
+      const editBtn = document.createElement('span');
+      editBtn.className = 'tab-edit';
+      editBtn.textContent = '✏';
+      editBtn.title = 'Đổi tên';
+      editBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (tab.id !== activeTabId) { switchTab(tab.id); setTimeout(startEdit, 60); return; }
+        startEdit();
+      };
+
+      const closeBtn = document.createElement('span');
+      closeBtn.className = 'tab-close';
+      closeBtn.textContent = '✕';
+      closeBtn.title = 'Xóa tab';
+      closeBtn.onclick = () => deleteTab(tab.id);
+
+      el.appendChild(nameInput);
+      el.appendChild(editBtn);
+      if (tabs.length > 1) el.appendChild(closeBtn);
+      bar.appendChild(el);
+    });
+
+  }
+
+  function switchTab(id) {
+    activeTabId = id;
+    localStorage.setItem('vocab_active_tab', id);
+    renderTabs();
+    renderWords();
+    document.getElementById('wordInput').focus();
+    setTimeout(() => { updateScrollBtns(); scrollActiveTabIntoView(); }, 50);
+  }
+
+  function newTab() {
+    const id = 'tab_' + Date.now();
+    tabs.push({ id, name: 'Bài ' + (tabs.length + 1) });
+    saveTabs();
+    switchTab(id);
+  }
+
+  function deleteTab(id) {
+    if (!confirm('Xóa tab "' + tabs.find(t => t.id === id)?.name + '"?')) return;
+    localStorage.removeItem('vocab_words_' + id);
+    tabs = tabs.filter(t => t.id !== id);
+    saveTabs();
+    if (activeTabId === id) activeTabId = tabs[0].id;
+    switchTab(activeTabId);
+  }
+
+  // ===== RENDER WORDS =====
+  function renderWords() {
+    const words = getWords(activeTabId);
+    const list = document.getElementById('vocabList');
+    const emptyMsg = document.getElementById('emptyMsg');
+    const countLabel = document.getElementById('countLabel');
+
+    list.innerHTML = '';
+    countLabel.textContent = words.length + ' từ';
+
+    if (words.length === 0) {
+      emptyMsg.style.display = 'block';
+      return;
+    }
+    emptyMsg.style.display = 'none';
+
+    for (const word of words) {
+      const card = document.createElement('div');
+      card.className = 'vocab-card';
+
+      card.innerHTML = `
+        <div class="word-info">
+          <span class="word-text">${word}</span>
+          <span class="word-phonetic" id="ph-${word}">...</span>
+          <span class="word-meaning loading" id="mn-${word}">đang dịch...</span>
+          <span class="mic-result" id="mr-${word}"></span>
+        </div>
+        <div class="word-actions">
+          <button class="btn-speak" onclick="speak('${word}')" data-tip="Nghe Google đọc từ này">🔊</button>
+          <button class="btn-mic" id="mb-${word}" onclick="startListen('${word}')" data-tip="Nói vào mic — Google kiểm tra phát âm">🎤</button>
+          <button class="btn-delete" onclick="deleteWord('${word}')" data-tip="Xóa từ này khỏi danh sách">✕</button>
+        </div>
+      `;
+      list.appendChild(card);
+
+      translate(word).then(m => {
+        const el = document.getElementById('mn-' + word);
+        if (el) { el.textContent = m; el.className = 'word-meaning'; }
+      });
+      getPhonetic(word).then(p => {
+        const el = document.getElementById('ph-' + word);
+        if (el) el.textContent = p || '';
+      });
+    }
+  }
+
+  // ===== ACTIONS =====
+  function addWord() {
+    const input = document.getElementById('wordInput');
+    const word = input.value.trim();
+    if (!word) return;
+    const words = getWords(activeTabId);
+    if (words.map(w => w.toLowerCase()).includes(word.toLowerCase())) {
+      input.value = '';
+      return;
+    }
+    words.push(word);
+    setWords(activeTabId, words);
+    input.value = '';
+    renderWords();
+    speak(word);
+  }
+
+  function deleteWord(word) {
+    const words = getWords(activeTabId).filter(w => w !== word);
+    setWords(activeTabId, words);
+    renderWords();
+  }
+
+  function clearAll() {
+    if (!confirm('Xóa hết từ vựng trong tab này?')) return;
+    setWords(activeTabId, []);
+    renderWords();
+  }
+
+  // ===== API =====
+  async function translate(word) {
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q=${encodeURIComponent(word)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data[0].map(x => x[0]).join('');
+    } catch { return ''; }
+  }
+
+  async function getPhonetic(word) {
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+      const data = await res.json();
+      return data[0]?.phonetic || data[0]?.phonetics?.find(p => p.text)?.text || '';
+    } catch { return ''; }
+  }
+
+  function speak(word) {
+    const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=gtx`;
+    new Audio(url).play();
+  }
+
+  function speakAll() {
+    const words = getWords(activeTabId);
+    if (!words.length) return;
+    let i = 0;
+    function next() {
+      if (i >= words.length) return;
+      const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(words[i])}&tl=en&client=gtx`;
+      const audio = new Audio(url);
+      audio.onended = () => { i++; setTimeout(next, 500); };
+      audio.play();
+    }
+    next();
+  }
+
+  // ===== SPEECH RECOGNITION =====
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  function startListen(word) {
+    if (!SpeechRecognition) {
+      alert('Cần dùng Chrome để dùng tính năng này.');
+      return;
+    }
+    const btn = document.getElementById('mb-' + word);
+    const result = document.getElementById('mr-' + word);
+
+    const rec = new SpeechRecognition();
+    rec.lang = 'en-US';
+    rec.interimResults = false;
+    rec.maxAlternatives = 5;
+
+    btn.classList.add('listening');
+    btn.textContent = '⏹';
+    result.className = 'mic-result info';
+    result.textContent = 'Đang nghe...';
+
+    rec.onresult = (e) => {
+      const alts = Array.from(e.results[0]).map(r => r.transcript.trim().toLowerCase());
+      const matched = alts.includes(word.toLowerCase());
+      result.className = 'mic-result ' + (matched ? 'correct' : 'wrong');
+      result.textContent = matched ? `✓ Google nhận ra: "${alts[0]}"` : `✗ Google nghe thấy: "${alts[0]}"`;
+    };
+
+    rec.onerror = (e) => {
+      result.className = 'mic-result wrong';
+      result.textContent = e.error === 'no-speech' ? 'Không nghe thấy gì' : 'Lỗi: ' + e.error;
+    };
+
+    rec.onend = () => {
+      btn.classList.remove('listening');
+      btn.textContent = '🎤';
+    };
+
+    rec.start();
+  }
+
+  // ===== SCROLL TABS =====
+  function scrollTabs(dir) {
+    const bar = document.getElementById('tabsBar');
+    bar.scrollBy({ left: dir * 160, behavior: 'smooth' });
+  }
+
+  function updateScrollBtns() {
+    const bar = document.getElementById('tabsBar');
+    const btnL = document.getElementById('scrollLeft');
+    const btnR = document.getElementById('scrollRight');
+    const hasOverflow = bar.scrollWidth > bar.clientWidth;
+    btnL.style.display = hasOverflow ? '' : 'none';
+    btnR.style.display = hasOverflow ? '' : 'none';
+    btnL.disabled = bar.scrollLeft <= 0;
+    btnR.disabled = bar.scrollLeft + bar.clientWidth >= bar.scrollWidth - 1;
+  }
+
+  function scrollActiveTabIntoView() {
+    const bar = document.getElementById('tabsBar');
+    const active = bar.querySelector('.tab.active');
+    if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    setTimeout(updateScrollBtns, 300);
+  }
+
+  // ===== TÌM KIẾM / SUGGEST =====
+  let focusedSuggest = -1;
+
+  function highlight(text, query) {
+    const idx = text.toLowerCase().indexOf(query.toLowerCase());
+    if (idx < 0) return `<span>${text}</span>`;
+    return `<span>${text.slice(0, idx)}<mark>${text.slice(idx, idx + query.length)}</mark>${text.slice(idx + query.length)}</span>`;
+  }
+
+  let suggestTimer = null;
+
+  async function renderSuggest(query) {
+    const box = document.getElementById('suggestList');
+    focusedSuggest = -1;
+    if (!query) { box.style.display = 'none'; return; }
+
+    const existing = getWords(activeTabId);
+    const existMatches = existing.filter(w => w.toLowerCase().includes(query.toLowerCase()));
+
+    // Hiện ngay phần từ đã có
+    let html = '';
+    if (existMatches.length) {
+      html += existMatches.slice(0, 4).map(w => {
+        const meaning = localStorage.getItem('meaning_' + w) || '';
+        return `<div class="suggest-item" data-word="${w}" onmousedown="selectSuggest('${w}')">
+          <span class="s-word">${highlight(w, query)}</span>
+          ${meaning ? `<span class="s-meaning">${meaning}</span>` : ''}
+          <span class="s-badge">Đã có ↑</span>
+        </div>`;
+      }).join('');
+    }
+
+    box.innerHTML = html || '<div class="suggest-divider">Đang tìm gợi ý...</div>';
+    box.style.display = 'block';
+
+    // Debounce gợi ý từ mới
+    clearTimeout(suggestTimer);
+    suggestTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://api.datamuse.com/words?sp=${encodeURIComponent(query)}*&max=6`);
+        const data = await res.json();
+        const existSet = new Set(existing.map(w => w.toLowerCase()));
+        const newWords = data.map(d => d.word).filter(w => !existSet.has(w.toLowerCase()));
+
+        let newHtml = existMatches.length
+          ? existMatches.slice(0, 4).map(w => {
+              const meaning = localStorage.getItem('meaning_' + w) || '';
+              return `<div class="suggest-item" data-word="${w}" onmousedown="selectSuggest('${w}')">
+                <span class="s-word">${highlight(w, query)}</span>
+                ${meaning ? `<span class="s-meaning">${meaning}</span>` : ''}
+                <span class="s-badge">Đã có ↑</span>
+              </div>`;
+            }).join('')
+          : '';
+
+        if (newWords.length) {
+          newHtml += `<div class="suggest-divider">Gợi ý từ mới</div>`;
+          newHtml += newWords.slice(0, 4).map(w =>
+            `<div class="suggest-item" data-word="${w}" onmousedown="selectSuggest('${w}', true)">
+              <span class="s-word">${highlight(w, query)}</span>
+              <span class="s-badge new">+ Thêm</span>
+            </div>`
+          ).join('');
+        }
+
+        if (newHtml) {
+          box.innerHTML = newHtml;
+          box.style.display = 'block';
+        } else {
+          box.style.display = 'none';
+        }
+      } catch {
+        if (!existMatches.length) box.style.display = 'none';
+      }
+    }, 300);
+  }
+
+  function selectSuggest(word, isNew = false) {
+    const words = getWords(activeTabId).filter(w => w !== word);
+    if (isNew) {
+      words.unshift(word); // thêm từ mới vào đầu
+    } else {
+      words.unshift(word); // đẩy từ đã có lên đầu
+    }
+    setWords(activeTabId, words);
+    document.getElementById('wordInput').value = '';
+    document.getElementById('suggestList').style.display = 'none';
+    renderWords();
+    speak(word);
+    setTimeout(() => { document.getElementById('vocabList').scrollTop = 0; }, 50);
+  }
+
+  function closeSuggest() {
+    document.getElementById('suggestList').style.display = 'none';
+    focusedSuggest = -1;
+  }
+
+  // Cache meaning để hiện trong suggest
+  const origTranslate = translate;
+  translate = async (word) => {
+    const result = await origTranslate(word);
+    if (result) localStorage.setItem('meaning_' + word, result);
+    return result;
+  };
+
+  // ===== KHỞI TẠO =====
+  const wordInput = document.getElementById('wordInput');
+
+  wordInput.addEventListener('input', () => {
+    renderSuggest(wordInput.value.trim());
+  });
+
+  wordInput.addEventListener('keydown', e => {
+    const box = document.getElementById('suggestList');
+    const items = box.querySelectorAll('.suggest-item');
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      focusedSuggest = Math.min(focusedSuggest + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle('focused', i === focusedSuggest));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusedSuggest = Math.max(focusedSuggest - 1, -1);
+      items.forEach((el, i) => el.classList.toggle('focused', i === focusedSuggest));
+    } else if (e.key === 'Enter') {
+      if (focusedSuggest >= 0 && items[focusedSuggest]) {
+        selectSuggest(items[focusedSuggest].dataset.word);
+      } else {
+        closeSuggest();
+        addWord();
+      }
+    } else if (e.key === 'Escape') {
+      closeSuggest();
+    }
+  });
+
+  wordInput.addEventListener('blur', () => setTimeout(closeSuggest, 150));
+
+  // Tooltip trên mobile (tap)
+  document.addEventListener('touchstart', (e) => {
+    const el = e.target.closest('[data-tip]');
+    document.querySelectorAll('.tip-show').forEach(t => t.classList.remove('tip-show'));
+    if (el) { el.classList.add('tip-show'); setTimeout(() => el.classList.remove('tip-show'), 2000); }
+  }, { passive: true });
+
+  document.getElementById('tabsBar').addEventListener('scroll', updateScrollBtns);
+  window.addEventListener('resize', updateScrollBtns);
+
+  renderTabs();
+  renderWords();
+  setTimeout(() => { updateScrollBtns(); scrollActiveTabIntoView(); }, 50);
+</script>
+
+</body>
+</html>
