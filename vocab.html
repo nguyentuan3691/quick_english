@@ -327,27 +327,38 @@
 
     .vocab-card {
       background: #f7fafc;
-      border-radius: 10px;
-      padding: 10px 12px;
+      border-radius: 12px;
+      padding: 16px 20px;
       border: 1px solid #e2e8f0;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 14px;
     }
+
+    .word-img {
+      width: 88px;
+      height: 88px;
+      border-radius: 10px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #e2e8f0;
+      display: none;
+    }
+    .word-img.loaded { display: block; }
 
     .word-info {
       flex: 1;
       display: flex;
       flex-wrap: wrap;
       align-items: baseline;
-      gap: 4px 8px;
+      gap: 6px 12px;
       min-width: 0;
     }
 
     .word-actions {
       display: flex;
       flex-direction: row;
-      gap: 6px;
+      gap: 10px;
       align-items: center;
       flex-shrink: 0;
     }
@@ -355,18 +366,18 @@
     .word-meta { display: none; }
 
     .word-text {
-      font-size: 1rem;
+      font-size: 1.6rem;
       font-weight: 700;
       color: #2d3748;
     }
 
     .word-phonetic {
-      font-size: 0.8rem;
+      font-size: 1.1rem;
       color: #4299e1;
     }
 
     .word-meaning {
-      font-size: 0.85rem;
+      font-size: 1.2rem;
       color: #718096;
       font-style: italic;
       width: 100%;
@@ -375,9 +386,9 @@
     .word-meaning.loading { color: #a0aec0; }
 
     .mic-result {
-      font-size: 0.78rem;
-      padding: 2px 8px;
-      border-radius: 6px;
+      font-size: 1rem;
+      padding: 4px 12px;
+      border-radius: 8px;
       display: none;
     }
 
@@ -386,14 +397,14 @@
     .mic-result.info    { background: #ebf8ff; color: #2b6cb0; display: inline; }
 
     .btn-speak, .btn-mic, .btn-delete {
-      padding: 7px 10px;
+      padding: 12px 16px;
       color: white;
       border: none;
-      border-radius: 7px;
+      border-radius: 10px;
       cursor: pointer;
-      font-size: 0.9rem;
-      min-height: 34px;
-      min-width: 34px;
+      font-size: 1.4rem;
+      min-height: 52px;
+      min-width: 52px;
     }
 
     .btn-speak { background: #48bb78; }
@@ -565,6 +576,16 @@
       line-height: 1.4;
     }
     .fc-question.vi { font-style: italic; color: #718096; font-size: 1.3rem; }
+    .fc-img {
+      width: 120px;
+      height: 90px;
+      border-radius: 10px;
+      object-fit: cover;
+      margin: 0 auto;
+      background: #e2e8f0;
+      display: none;
+    }
+    .fc-img.loaded { display: block; }
     .fc-phonetic { font-size: 0.9rem; color: #4299e1; }
     .fc-answer-area {
       padding: 0 16px 16px;
@@ -711,7 +732,7 @@
 <body>
 
 <div id="tooltip"></div>
-<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v1.8</span></h1>
+<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v2.0</span></h1>
 
 <div class="tabs-wrapper">
   <div class="tabs-nav">
@@ -766,6 +787,7 @@
     </div>
     <div class="fc-card" id="fcCard">
       <div class="fc-prompt" id="fcPrompt">Nghĩa tiếng Việt</div>
+      <img class="fc-img" id="fcImg" alt="" />
       <div class="fc-question" id="fcQuestion"></div>
       <div class="fc-phonetic" id="fcPhonetic"></div>
     </div>
@@ -925,6 +947,7 @@
       card.className = 'vocab-card';
 
       card.innerHTML = `
+        <img class="word-img" id="wi-${word}" alt="" />
         <div class="word-info">
           <span class="word-text">${word}</span>
           <span class="word-phonetic" id="ph-${word}">...</span>
@@ -967,6 +990,11 @@
       getPhonetic(word).then(p => {
         const el = document.getElementById('ph-' + word);
         if (el) el.textContent = p || '';
+      });
+      getWordImage(word).then(url => {
+        if (!url) return;
+        const el = document.getElementById('wi-' + word);
+        if (el) { el.src = url; el.onload = () => el.classList.add('loaded'); }
       });
     }
   }
@@ -1016,6 +1044,20 @@
       const data = await res.json();
       return data[0]?.phonetic || data[0]?.phonetics?.find(p => p.text)?.text || '';
     } catch { return ''; }
+  }
+
+  // ===== WIKIPEDIA IMAGE =====
+  async function getWordImage(word) {
+    const cached = localStorage.getItem('img_' + word);
+    if (cached !== null) return cached || '';
+    try {
+      const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(word)}`);
+      if (!res.ok) { localStorage.setItem('img_' + word, ''); return ''; }
+      const data = await res.json();
+      const url = data.thumbnail?.source || '';
+      localStorage.setItem('img_' + word, url);
+      return url;
+    } catch { localStorage.setItem('img_' + word, ''); return ''; }
   }
 
   // Shared audio — dùng cho speak(word) gọi programmatic & speakAll()
@@ -1547,6 +1589,17 @@
     document.getElementById('fcMicBtn').textContent = '🎤';
 
     document.getElementById('fcProgress').textContent = (_fcIndex + 1) + '/' + _fcWords.length;
+
+    // Show image
+    const fcImg = document.getElementById('fcImg');
+    fcImg.classList.remove('loaded');
+    fcImg.src = '';
+    getWordImage(word).then(url => {
+      if (url && _fcWords[_fcIndex] === word) {
+        fcImg.src = url;
+        fcImg.onload = () => fcImg.classList.add('loaded');
+      }
+    });
 
     if (_fcMode === 'vi2en') {
       prompt.textContent = 'Nghĩa tiếng Việt';
