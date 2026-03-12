@@ -271,28 +271,40 @@
     const { word, getRef, setRef, btnEl, resetText = '🎤', onInterim, onFinal, onError, onDone } = opts;
     if (getRef()) { getRef().stop(); return; }
     if (!SpeechRecognition) { onError('no-support'); return; }
-    _sharedAudio.pause(); _sharedAudio.currentTime = 0;
-    const rec = new SpeechRecognition();
-    rec.lang = 'en-US';
-    rec.interimResults = !!onInterim;
-    rec.maxAlternatives = 5;
-    setRef(rec);
-    btnEl.classList.add('listening');
-    btnEl.textContent = '⏹';
-    rec.onresult = e => {
-      const res0 = e.results[0];
-      if (!res0.isFinal) { onInterim?.(res0[0].transcript); return; }
-      onFinal(Array.from(res0).map(r => r.transcript.trim().toLowerCase()));
+
+    const doRec = () => {
+      _sharedAudio.pause(); _sharedAudio.currentTime = 0;
+      const rec = new SpeechRecognition();
+      rec.lang = 'en-US';
+      rec.interimResults = !!onInterim;
+      rec.maxAlternatives = 5;
+      setRef(rec);
+      btnEl.classList.add('listening');
+      btnEl.textContent = '⏹';
+      rec.onresult = e => {
+        const res0 = e.results[0];
+        if (!res0.isFinal) { onInterim?.(res0[0].transcript); return; }
+        onFinal(Array.from(res0).map(r => r.transcript.trim().toLowerCase()));
+      };
+      rec.onspeechend = () => rec.stop();
+      rec.onerror = e => { if (e.error !== 'aborted') onError(e.error); };
+      rec.onend = () => {
+        btnEl.classList.remove('listening');
+        btnEl.textContent = resetText;
+        setRef(null);
+        onDone?.();
+      };
+      rec.start();
     };
-    rec.onspeechend = () => rec.stop();
-    rec.onerror = e => { if (e.error !== 'aborted') onError(e.error); };
-    rec.onend = () => {
-      btnEl.classList.remove('listening');
-      btnEl.textContent = resetText;
-      setRef(null);
-      onDone?.();
-    };
-    rec.start();
+
+    // Kiểm tra quyền mic trước — nếu bị denied thì báo lỗi ngay
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'microphone' })
+        .then(perm => { if (perm.state === 'denied') onError('not-allowed'); else doRec(); })
+        .catch(() => doRec());
+    } else {
+      doRec();
+    }
   }
 
   function speakAll() {
@@ -443,23 +455,35 @@
     const btn = document.getElementById('mb-' + word);
     const result = document.getElementById('mr-' + word);
 
-    // Mở mic — dùng cached stream (tránh hỏi Allow lại)
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      getCachedMicStream().then(stream => {
-        const tracks = stream.getAudioTracks();
-        const settings = tracks[0]?.getSettings?.() || {};
-        vlog(`🎙 Mic OK: "${tracks[0]?.label || 'unknown'}"`, 'ok');
-        vlog(`🎙 Settings: AGC=${settings.autoGainControl}, noise=${settings.noiseSuppression}, echo=${settings.echoCancellation}, sampleRate=${settings.sampleRate}`);
-        // Giữ stream để monitor level trong lúc recognition
-        doStartRec(word, btn, result, stream);
-      }).catch(err => {
-        vlog(`🎙 Mic permission DENIED: ${err.name} — ${err.message}`, 'err');
+    // Kiểm tra quyền mic trước — chỉ gọi getUserMedia nếu đã granted
+    // (tránh browser xin quyền 2 lần: 1 từ getUserMedia, 1 từ SpeechRecognition)
+    const checkAndStart = (permState) => {
+      if (permState === 'granted' && navigator.mediaDevices) {
+        // Quyền đã có → dùng cached stream cho level meter
+        getCachedMicStream().then(stream => {
+          const tracks = stream.getAudioTracks();
+          const settings = tracks[0]?.getSettings?.() || {};
+          vlog(`🎙 Mic OK: "${tracks[0]?.label || 'unknown'}"`, 'ok');
+          vlog(`🎙 Settings: AGC=${settings.autoGainControl}, noise=${settings.noiseSuppression}, echo=${settings.echoCancellation}, sampleRate=${settings.sampleRate}`);
+          doStartRec(word, btn, result, stream);
+        }).catch(() => doStartRec(word, btn, result, null));
+      } else if (permState === 'denied') {
+        vlog(`🎙 Mic permission DENIED`, 'err');
         result.className = 'mic-result wrong';
         result.textContent = '❌ Không truy cập được mic — kiểm tra quyền micro trong Cài đặt';
-      });
+      } else {
+        // prompt hoặc không hỗ trợ permissions API → để SpeechRecognition tự xin quyền 1 lần
+        vlog(`🎙 Mic permission chưa cấp — để SpeechRecognition xin`);
+        doStartRec(word, btn, result, null);
+      }
+    };
+
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'microphone' })
+        .then(perm => checkAndStart(perm.state))
+        .catch(() => checkAndStart('prompt'));
     } else {
-      vlog(`🎙 mediaDevices không có — skip mic check`);
-      doStartRec(word, btn, result, null);
+      checkAndStart(_cachedMicStream ? 'granted' : 'prompt');
     }
   }
 
