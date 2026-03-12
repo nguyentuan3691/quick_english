@@ -1036,7 +1036,7 @@
 <body>
 
 <div id="tooltip"></div>
-<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v2.3</span></h1>
+<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v2.4</span></h1>
 
 <div class="tabs-wrapper">
   <div class="tabs-nav">
@@ -1443,34 +1443,34 @@
 
   // startSimpleRec: shared core cho mọi mic recognition đơn giản (fc, wd)
   // opts: { word, getRef, setRef, btnEl, resetText, onInterim, onFinal, onError, onDone }
+  // Không gọi getCachedMicStream ở đây — SpeechRecognition tự quản lý mic,
+  // gọi thêm getUserMedia chỉ làm browser hỏi quyền 2 lần.
   function startSimpleRec(opts) {
     const { word, getRef, setRef, btnEl, resetText = '🎤', onInterim, onFinal, onError, onDone } = opts;
     if (getRef()) { getRef().stop(); return; }
     if (!SpeechRecognition) { onError('no-support'); return; }
     _sharedAudio.pause(); _sharedAudio.currentTime = 0;
-    getCachedMicStream().then(() => {
-      const rec = new SpeechRecognition();
-      rec.lang = 'en-US';
-      rec.interimResults = !!onInterim;
-      rec.maxAlternatives = 5;
-      setRef(rec);
-      btnEl.classList.add('listening');
-      btnEl.textContent = '⏹';
-      rec.onresult = e => {
-        const res0 = e.results[0];
-        if (!res0.isFinal) { onInterim?.(res0[0].transcript); return; }
-        onFinal(Array.from(res0).map(r => r.transcript.trim().toLowerCase()));
-      };
-      rec.onspeechend = () => rec.stop();
-      rec.onerror = e => { if (e.error !== 'aborted') onError(e.error); };
-      rec.onend = () => {
-        btnEl.classList.remove('listening');
-        btnEl.textContent = resetText;
-        setRef(null);
-        onDone?.();
-      };
-      rec.start();
-    }).catch(() => { btnEl.textContent = resetText; });
+    const rec = new SpeechRecognition();
+    rec.lang = 'en-US';
+    rec.interimResults = !!onInterim;
+    rec.maxAlternatives = 5;
+    setRef(rec);
+    btnEl.classList.add('listening');
+    btnEl.textContent = '⏹';
+    rec.onresult = e => {
+      const res0 = e.results[0];
+      if (!res0.isFinal) { onInterim?.(res0[0].transcript); return; }
+      onFinal(Array.from(res0).map(r => r.transcript.trim().toLowerCase()));
+    };
+    rec.onspeechend = () => rec.stop();
+    rec.onerror = e => { if (e.error !== 'aborted') onError(e.error); };
+    rec.onend = () => {
+      btnEl.classList.remove('listening');
+      btnEl.textContent = resetText;
+      setRef(null);
+      onDone?.();
+    };
+    rec.start();
   }
 
   function speakAll() {
