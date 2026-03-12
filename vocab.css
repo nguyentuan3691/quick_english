@@ -512,7 +512,7 @@ h1 {
   z-index: 1000;
   justify-content: center;
   align-items: center;
-  padding: 16px;
+  padding: 12px;
 }
 .fc-overlay.open { display: flex; }
 .fc-box {
@@ -520,8 +520,9 @@ h1 {
   border-radius: 16px;
   width: 100%;
   max-width: 440px;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
   box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  overflow: hidden;
 }
 .fc-header {
   display: flex;
@@ -587,8 +588,8 @@ h1 {
 }
 .fc-question.vi { font-style: italic; color: #718096; font-size: 1.3rem; }
 .fc-img {
-  width: 120px;
-  height: 90px;
+  width: 180px;
+  height: 135px;
   border-radius: 10px;
   object-fit: cover;
   margin: 0 auto;
@@ -600,16 +601,18 @@ h1 {
 .fc-answer-area {
   padding: 0 16px 16px;
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 .fc-input {
-  flex: 1;
+  flex-basis: 100%;
   padding: 12px 14px;
   font-size: 1rem;
   border: 2px solid #cbd5e0;
   border-radius: 10px;
   outline: none;
   text-align: center;
+  min-width: 0;
 }
 .fc-input:focus { border-color: #4299e1; }
 .fc-input.correct { border-color: #48bb78; background: #f0fff4; }
@@ -622,11 +625,12 @@ h1 {
   border-radius: 10px;
   font-size: 1rem;
   cursor: pointer;
-  min-width: 44px;
+  min-width: 48px;
 }
 .fc-mic-btn:hover { background: #dd6b20; }
 .fc-mic-btn.listening { background: #e53e3e; animation: pulse 1s infinite; }
 .fc-check-btn {
+  flex: 1;
   padding: 12px 18px;
   background: #4299e1;
   color: white;
@@ -635,6 +639,7 @@ h1 {
   font-size: 1rem;
   cursor: pointer;
   font-weight: 600;
+  white-space: nowrap;
 }
 .fc-check-btn:hover { background: #3182ce; }
 .fc-reveal {
