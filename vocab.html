@@ -345,7 +345,10 @@
       display: flex;
       align-items: center;
       gap: 14px;
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
     }
+    .vocab-card:hover { background: #ebf8ff; box-shadow: 0 2px 8px rgba(66,153,225,0.12); }
 
     .word-img {
       width: 88px;
@@ -716,6 +719,135 @@
     .fc-done-btn.secondary { background: #e2e8f0; color: #4a5568; }
     .fc-done-btn.secondary:hover { background: #cbd5e0; }
 
+    /* ===== WORD DETAIL POPUP ===== */
+    .wd-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 1000;
+      justify-content: center;
+      align-items: flex-end;
+      padding: 0;
+    }
+    @media (min-width: 480px) {
+      .wd-overlay { align-items: center; padding: 16px; }
+    }
+    .wd-overlay.open { display: flex; }
+    .wd-box {
+      background: white;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 -4px 32px rgba(0,0,0,0.2);
+      overflow: hidden;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+    }
+    @media (min-width: 480px) {
+      .wd-box { border-radius: 20px; transform: scale(0.9); transition: transform 0.22s cubic-bezier(.4,0,.2,1), opacity 0.22s; opacity: 0; }
+    }
+    .wd-overlay.open .wd-box { transform: translateY(0); }
+    @media (min-width: 480px) {
+      .wd-overlay.open .wd-box { transform: scale(1); opacity: 1; }
+    }
+    .wd-drag-bar {
+      width: 40px; height: 4px;
+      background: #cbd5e0;
+      border-radius: 2px;
+      margin: 10px auto 0;
+    }
+    @media (min-width: 480px) { .wd-drag-bar { display: none; } }
+    .wd-header {
+      display: flex;
+      justify-content: flex-end;
+      padding: 8px 12px 0;
+    }
+    .wd-close {
+      background: #e2e8f0; border: none; border-radius: 50%;
+      width: 34px; height: 34px; font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; color: #4a5568;
+    }
+    .wd-close:hover { background: #cbd5e0; }
+    .wd-img-wrap {
+      display: flex;
+      justify-content: center;
+      padding: 0 20px 4px;
+    }
+    .wd-img {
+      width: 140px; height: 105px;
+      border-radius: 14px;
+      object-fit: cover;
+      background: #e2e8f0;
+      display: none;
+    }
+    .wd-img.loaded { display: block; }
+    .wd-body {
+      padding: 8px 24px 20px;
+      text-align: center;
+    }
+    .wd-word {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #2d3748;
+      line-height: 1.2;
+    }
+    .wd-phonetic {
+      font-size: 1.2rem;
+      color: #4299e1;
+      margin: 4px 0 10px;
+    }
+    .wd-meaning {
+      font-size: 1.3rem;
+      color: #718096;
+      font-style: italic;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .wd-btns {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .wd-btn-speak {
+      flex: 1;
+      max-width: 160px;
+      padding: 14px;
+      background: #48bb78;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      font-weight: 600;
+      min-height: 52px;
+    }
+    .wd-btn-speak:hover { background: #38a169; }
+    .wd-btn-mic {
+      flex: 1;
+      max-width: 160px;
+      padding: 14px;
+      background: #ed8936;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      font-weight: 600;
+      min-height: 52px;
+    }
+    .wd-btn-mic:hover { background: #dd6b20; }
+    .wd-btn-mic.listening { background: #e53e3e; animation: pulse 1s infinite; }
+    .wd-mic-result {
+      font-size: 1rem;
+      padding: 6px 14px;
+      border-radius: 8px;
+      margin-top: 12px;
+      display: none;
+    }
+    .wd-mic-result.correct { background: #c6f6d5; color: #276749; display: block; }
+    .wd-mic-result.wrong   { background: #fed7d7; color: #9b2c2c; display: block; }
+
     /* ===== WORD MATCH ===== */
     .wm-overlay {
       display: none;
@@ -991,6 +1123,29 @@
   </div>
 </div>
 
+<div class="wd-overlay" id="wdOverlay" onclick="wdOverlayClick(event)">
+  <div class="wd-box" id="wdBox">
+    <div class="wd-drag-bar"></div>
+    <div class="wd-header">
+      <button class="wd-close" onclick="closeWordDetail()">✕</button>
+    </div>
+    <div class="wd-img-wrap">
+      <img class="wd-img" id="wdImg" alt="" />
+    </div>
+    <div class="wd-body">
+      <div class="wd-word" id="wdWord"></div>
+      <div class="wd-phonetic" id="wdPhonetic"></div>
+      <div class="wd-meaning" id="wdMeaning"></div>
+      <div class="wd-btns">
+        <button class="wd-btn-speak" id="wdBtnSpeak" onclick="wdSpeak()">🔊 Nghe</button>
+        <button class="wd-btn-mic" id="wdBtnMic" onclick="wdStartListen()">🎤 Nói</button>
+      </div>
+      <div class="wd-mic-result" id="wdMicResult"></div>
+    </div>
+    <audio id="wdAudio" preload="none"></audio>
+  </div>
+</div>
+
 <div class="wm-overlay" id="wmOverlay">
   <div class="wm-box">
     <div class="wm-header">
@@ -1167,7 +1322,7 @@
       // iOS: nút loa chính là <audio> element, user tap trực tiếp → play() hợp lệ
       const au = document.createElement('audio');
       au.preload = 'none';
-      au.src = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=gtx`;
+      au.src = ttsUrl(word);
       au.dataset.word = word;
       card.querySelector('.word-actions').prepend(au);
 
@@ -1178,10 +1333,14 @@
       const speakBtn = card.querySelector('.btn-speak');
       speakBtn.addEventListener('click', () => {
         vlog(`🔊 Tap speak: "${word}"`);
-        // Unlock shared audio trên iOS bằng cách play silent rồi dùng cho speakAll
-        _sharedAudio.play().then(() => _sharedAudio.pause()).catch(() => {});
+        unlockAudio(); // Unlock shared audio trên iOS trước khi play
         au.currentTime = 0;
         au.play().catch(err => vlog(`🔊 play() rejected: ${err.message}`, 'err'));
+      });
+
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.tagName === 'AUDIO') return;
+        openWordDetail(word);
       });
 
       list.appendChild(card);
@@ -1269,10 +1428,49 @@
   _sharedAudio.preload = 'none';
   document.body.appendChild(_sharedAudio);
 
+  function ttsUrl(word) {
+    return `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=gtx`;
+  }
+
+  function unlockAudio() {
+    _sharedAudio.play().then(() => _sharedAudio.pause()).catch(() => {});
+  }
+
   function speak(word) {
-    const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=gtx`;
-    _sharedAudio.src = url;
+    _sharedAudio.src = ttsUrl(word);
     _sharedAudio.play().catch(() => {});
+  }
+
+  // startSimpleRec: shared core cho mọi mic recognition đơn giản (fc, wd)
+  // opts: { word, getRef, setRef, btnEl, resetText, onInterim, onFinal, onError, onDone }
+  function startSimpleRec(opts) {
+    const { word, getRef, setRef, btnEl, resetText = '🎤', onInterim, onFinal, onError, onDone } = opts;
+    if (getRef()) { getRef().stop(); return; }
+    if (!SpeechRecognition) { onError('no-support'); return; }
+    _sharedAudio.pause(); _sharedAudio.currentTime = 0;
+    getCachedMicStream().then(() => {
+      const rec = new SpeechRecognition();
+      rec.lang = 'en-US';
+      rec.interimResults = !!onInterim;
+      rec.maxAlternatives = 5;
+      setRef(rec);
+      btnEl.classList.add('listening');
+      btnEl.textContent = '⏹';
+      rec.onresult = e => {
+        const res0 = e.results[0];
+        if (!res0.isFinal) { onInterim?.(res0[0].transcript); return; }
+        onFinal(Array.from(res0).map(r => r.transcript.trim().toLowerCase()));
+      };
+      rec.onspeechend = () => rec.stop();
+      rec.onerror = e => { if (e.error !== 'aborted') onError(e.error); };
+      rec.onend = () => {
+        btnEl.classList.remove('listening');
+        btnEl.textContent = resetText;
+        setRef(null);
+        onDone?.();
+      };
+      rec.start();
+    }).catch(() => { btnEl.textContent = resetText; });
   }
 
   function speakAll() {
@@ -1283,10 +1481,9 @@
     function next() {
       if (i >= words.length) { vlog(`▶▶ speakAll hoàn tất`, 'ok'); return; }
       vlog(`▶▶ speakAll [${i+1}/${words.length}]: "${words[i]}"`);
-      const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(words[i])}&tl=en&client=gtx`;
       _sharedAudio.onended = () => { i++; setTimeout(next, 500); };
       _sharedAudio.onerror = () => { vlog(`▶▶ speakAll error tại "${words[i]}"`, 'err'); i++; setTimeout(next, 500); };
-      _sharedAudio.src = url;
+      _sharedAudio.src = ttsUrl(words[i]);
       _sharedAudio.play().catch(err => vlog(`▶▶ speakAll play() rejected: ${err.message}`, 'err'));
     }
     // Từ đầu tiên play() trong user gesture → unlock
@@ -1872,10 +2069,7 @@
 
   function fcPlayAudio() {
     if (_fcIndex >= _fcWords.length) return;
-    const word = _fcWords[_fcIndex];
-    const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=gtx`;
-    _sharedAudio.src = url;
-    _sharedAudio.play().catch(() => {});
+    speak(_fcWords[_fcIndex]);
   }
 
   function updateFcScore() {
@@ -1905,61 +2099,21 @@
   // ===== FLASHCARD MIC (Speech Recognition) =====
   let _fcRec = null;
   function fcStartListen() {
-    if (!SpeechRecognition) { alert('Trình duyệt không hỗ trợ nhận diện giọng nói.'); return; }
     if (_fcAnswered) return;
-    const micBtn = document.getElementById('fcMicBtn');
-
-    // Toggle: đang nghe → dừng
-    if (_fcRec) {
-      _fcRec.stop();
-      return;
-    }
-
-    // Pause audio to free mic on iOS
-    _sharedAudio.pause();
-    _sharedAudio.currentTime = 0;
-
-    getCachedMicStream().then(stream => {
-      const rec = new SpeechRecognition();
-      rec.lang = 'en-US';
-      rec.interimResults = true;
-      rec.maxAlternatives = 5;
-      _fcRec = rec;
-
-      micBtn.classList.add('listening');
-      micBtn.textContent = '⏹';
-
-      const input = document.getElementById('fcInput');
-      input.placeholder = '🎙 Đang nghe...';
-
-      rec.onresult = (e) => {
-        const res0 = e.results[0];
-        if (!res0.isFinal) {
-          input.value = res0[0].transcript;
-          return;
-        }
-        input.value = res0[0].transcript;
-        // Auto-check after getting final result
-        setTimeout(() => checkQuizAnswer(), 200);
-      };
-
-      rec.onspeechend = () => { rec.stop(); };
-
-      rec.onerror = (e) => {
-        if (e.error === 'aborted') return;
-        input.placeholder = e.error === 'no-speech' ? '🔇 Không nghe thấy — thử lại' : 'Lỗi: ' + e.error;
-      };
-
-      rec.onend = () => {
-        micBtn.classList.remove('listening');
-        micBtn.textContent = '🎤';
-        _fcRec = null;
-        if (!input.value) input.placeholder = 'Gõ câu trả lời...';
-      };
-
-      rec.start();
-    }).catch(() => {
-      micBtn.textContent = '🎤';
+    const input = document.getElementById('fcInput');
+    input.placeholder = '🎙 Đang nghe...';
+    startSimpleRec({
+      word: _fcWords[_fcIndex],
+      getRef: () => _fcRec,
+      setRef: r => _fcRec = r,
+      btnEl: document.getElementById('fcMicBtn'),
+      onInterim: t => { input.value = t; },
+      onFinal: alts => { input.value = alts[0]; setTimeout(() => checkQuizAnswer(), 200); },
+      onError: err => {
+        if (err === 'no-support') { alert('Trình duyệt không hỗ trợ nhận diện giọng nói.'); return; }
+        input.placeholder = err === 'no-speech' ? '🔇 Không nghe thấy — thử lại' : 'Lỗi: ' + err;
+      },
+      onDone: () => { if (!input.value) input.placeholder = 'Gõ câu trả lời...'; },
     });
   }
 
@@ -2018,6 +2172,104 @@
     document.getElementById('wmOverlay').classList.remove('open');
     clearInterval(_wmTimerInterval);
   }
+
+  // ===== WORD DETAIL POPUP =====
+  let _wdWord = null;
+  let _wdRecog = null;
+
+  function openWordDetail(word) {
+    _wdWord = word;
+    const overlay = document.getElementById('wdOverlay');
+    document.getElementById('wdWord').textContent = word;
+    document.getElementById('wdPhonetic').textContent = '';
+    document.getElementById('wdMeaning').textContent = 'đang dịch...';
+    document.getElementById('wdMicResult').className = 'wd-mic-result';
+    document.getElementById('wdBtnMic').className = 'wd-btn-mic';
+    document.getElementById('wdBtnMic').textContent = '🎤 Nói';
+    const img = document.getElementById('wdImg');
+    img.className = 'wd-img';
+    img.src = '';
+    const audio = document.getElementById('wdAudio');
+    audio.src = ttsUrl(word);
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    // Lấy data từ cache (đã render ở card) hoặc fetch mới
+    const phEl = document.getElementById('ph-' + word);
+    const mnEl = document.getElementById('mn-' + word);
+    const imgEl = document.getElementById('wi-' + word);
+    if (phEl && phEl.textContent && phEl.textContent !== '...') {
+      document.getElementById('wdPhonetic').textContent = phEl.textContent;
+    } else {
+      getPhonetic(word).then(p => { document.getElementById('wdPhonetic').textContent = p || ''; });
+    }
+    if (mnEl && mnEl.textContent && mnEl.textContent !== 'đang dịch...') {
+      document.getElementById('wdMeaning').textContent = mnEl.textContent;
+    } else {
+      translate(word).then(m => { document.getElementById('wdMeaning').textContent = m; });
+    }
+    if (imgEl && imgEl.classList.contains('loaded')) {
+      img.src = imgEl.src;
+      img.onload = () => img.classList.add('loaded');
+    } else {
+      getWordImage(word).then(url => {
+        if (!url) return;
+        img.src = url;
+        img.onload = () => img.classList.add('loaded');
+      });
+    }
+  }
+
+  function closeWordDetail() {
+    document.getElementById('wdOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+    if (_wdRecog) { try { _wdRecog.stop(); } catch(e) {} _wdRecog = null; }
+    document.getElementById('wdAudio').pause();
+  }
+
+  function wdOverlayClick(e) {
+    if (e.target === document.getElementById('wdOverlay')) closeWordDetail();
+  }
+
+  function wdSpeak() {
+    unlockAudio(); // iOS unlock
+    const audio = document.getElementById('wdAudio');
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  }
+
+  function wdStartListen() {
+    const resEl = document.getElementById('wdMicResult');
+    startSimpleRec({
+      word: _wdWord,
+      getRef: () => _wdRecog,
+      setRef: r => { _wdRecog = r; },
+      btnEl: document.getElementById('wdBtnMic'),
+      resetText: '🎤 Nói',
+      onFinal: alts => {
+        const clean = s => s.replace(/[^a-z]/g, '');
+        const target = _wdWord.toLowerCase();
+        const ok = alts.some(a => a === target || clean(a) === clean(target));
+        resEl.textContent = ok ? `✓ Đúng! "${alts[0]}"` : `✗ Nghe được: "${alts[0]}"`;
+        resEl.className = 'wd-mic-result ' + (ok ? 'correct' : 'wrong');
+      },
+      onError: err => {
+        if (err === 'no-support') {
+          resEl.textContent = 'Trình duyệt không hỗ trợ mic';
+          resEl.className = 'wd-mic-result wrong';
+          return;
+        }
+        resEl.textContent = err === 'no-speech' ? '🔇 Không nghe thấy — thử lại' : 'Lỗi: ' + err;
+        resEl.className = 'wd-mic-result wrong';
+      },
+    });
+  }
+
+  // Đóng popup bằng nút Back trên mobile
+  window.addEventListener('popstate', () => {
+    if (document.getElementById('wdOverlay').classList.contains('open')) closeWordDetail();
+  });
 
   function renderMatchBoard() {
     const colEn = document.getElementById('wmColEn');
@@ -2098,9 +2350,7 @@
       updateWmScore();
 
       // Play audio for matched word
-      const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(enWord)}&tl=en&client=gtx`;
-      _sharedAudio.src = url;
-      _sharedAudio.play().catch(() => {});
+      speak(enWord);
 
       if (_wmMatched >= _wmPairs.length) {
         clearInterval(_wmTimerInterval);
@@ -2216,6 +2466,30 @@
 
   document.getElementById('tabsBar').addEventListener('scroll', updateScrollBtns);
   window.addEventListener('resize', updateScrollBtns);
+
+  // Swipe-down để đóng word detail popup trên mobile
+  (function() {
+    const box = document.getElementById('wdBox');
+    let startY = 0, isDragging = false;
+    box.addEventListener('touchstart', e => {
+      startY = e.touches[0].clientY;
+      isDragging = true;
+      box.style.transition = 'none';
+    }, { passive: true });
+    box.addEventListener('touchmove', e => {
+      if (!isDragging) return;
+      const dy = e.touches[0].clientY - startY;
+      if (dy > 0) box.style.transform = `translateY(${dy}px)`;
+    }, { passive: true });
+    box.addEventListener('touchend', e => {
+      if (!isDragging) return;
+      isDragging = false;
+      const dy = e.changedTouches[0].clientY - startY;
+      box.style.transition = '';
+      box.style.transform = '';
+      if (dy > 80) closeWordDetail();
+    });
+  })();
 
   renderTabs();
   renderWords();
