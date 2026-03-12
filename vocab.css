@@ -601,37 +601,41 @@ h1 {
 .fc-answer-area {
   padding: 0 16px 16px;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
 }
 .fc-input {
-  flex-basis: 100%;
+  width: 100%;
   padding: 12px 14px;
   font-size: 1rem;
   border: 2px solid #cbd5e0;
   border-radius: 10px;
   outline: none;
   text-align: center;
-  min-width: 0;
+  box-sizing: border-box;
 }
 .fc-input:focus { border-color: #4299e1; }
 .fc-input.correct { border-color: #48bb78; background: #f0fff4; }
 .fc-input.wrong { border-color: #fc8181; background: #fff5f5; }
+.fc-btn-row {
+  display: flex;
+  gap: 8px;
+}
 .fc-mic-btn {
   padding: 12px 14px;
   background: #ed8936;
   color: white;
   border: none;
   border-radius: 10px;
-  font-size: 1rem;
+  font-size: 1.1rem;
   cursor: pointer;
-  min-width: 48px;
+  min-width: 50px;
 }
 .fc-mic-btn:hover { background: #dd6b20; }
 .fc-mic-btn.listening { background: #e53e3e; animation: pulse 1s infinite; }
 .fc-check-btn {
   flex: 1;
-  padding: 12px 18px;
+  padding: 12px;
   background: #4299e1;
   color: white;
   border: none;
@@ -639,7 +643,6 @@ h1 {
   font-size: 1rem;
   cursor: pointer;
   font-weight: 600;
-  white-space: nowrap;
 }
 .fc-check-btn:hover { background: #3182ce; }
 .fc-reveal {

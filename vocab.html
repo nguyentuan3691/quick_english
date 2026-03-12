@@ -10,7 +10,7 @@
 <body>
 
 <div id="tooltip"></div>
-<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v3.1</span></h1>
+<h1>📚 Từ Vựng Tiếng Anh <span style="font-size:0.5em;color:#a0aec0">v3.2</span></h1>
 
 <div class="tabs-wrapper">
   <div class="tabs-nav">
@@ -72,8 +72,10 @@
     </div>
     <div class="fc-answer-area" id="fcAnswerArea">
       <input type="text" class="fc-input" id="fcInput" placeholder="Gõ câu trả lời..." autocomplete="off" />
-      <button class="fc-mic-btn" id="fcMicBtn" onclick="fcStartListen()" data-tip="Nói câu trả lời">🎤</button>
-      <button class="fc-check-btn" id="fcCheckBtn" onclick="checkQuizAnswer()">Kiểm tra</button>
+      <div class="fc-btn-row">
+        <button class="fc-mic-btn" id="fcMicBtn" onclick="fcStartListen()" data-tip="Nói câu trả lời">🎤</button>
+        <button class="fc-check-btn" id="fcCheckBtn" onclick="checkQuizAnswer()">Kiểm tra</button>
+      </div>
     </div>
     <div class="fc-reveal" id="fcReveal">
       <div class="fc-reveal-word" id="fcRevealWord"></div>
