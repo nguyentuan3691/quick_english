@@ -399,9 +399,7 @@ h1 {
   display: none;
   width: 100%;
   box-sizing: border-box;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
 }
 
 .mic-result.correct { background: #c6f6d5; color: #276749; display: block; }
