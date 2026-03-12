@@ -132,13 +132,13 @@
           <span class="word-text">${word}</span>
           <span class="word-phonetic" id="ph-${word}">...</span>
           <span class="word-meaning loading" id="mn-${word}">đang dịch...</span>
-          <span class="mic-result" id="mr-${word}"></span>
         </div>
         <div class="word-actions">
           <button class="btn-speak" data-tip="Nghe Google đọc từ này">🔊</button>
           <button class="btn-mic" id="mb-${word}" onclick="startListen('${word}')" data-tip="Nhấn → nói từ → tự dừng khi bạn ngừng nói">🎤</button>
           <button class="btn-delete" onclick="deleteWord('${word}')" data-tip="Xóa từ này khỏi danh sách">✕</button>
         </div>
+        <div class="mic-result" id="mr-${word}"></div>
       `;
 
       // iOS: nút loa chính là <audio> element, user tap trực tiếp → play() hợp lệ
